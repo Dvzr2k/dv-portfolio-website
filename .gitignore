@@ -1,0 +1,18 @@
+.claude/settings.local.json
+.claude/deploy.log
+*.log
+.DS_Store
+
+# Astro build output / generated types
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env.production
+
+# editor
+.idea/

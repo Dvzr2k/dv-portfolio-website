@@ -1,0 +1,66 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --show-toplevel)/.claude/hooks/block-prompt-intent.sh\"'"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --show-toplevel)/.claude/hooks/block-destructive-commands.sh\"'"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --show-toplevel)/.claude/hooks/block-secret-commit.sh\"'"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --show-toplevel)/.claude/hooks/block-rm-critical-dirs.sh\"'"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --show-toplevel)/.claude/hooks/warn-risky-action.sh\"'"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__.*__ExecuteTerraformCommand|mcp__.*__ExecuteTerragruntCommand",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --show-toplevel)/.claude/hooks/block-mcp-destroy.sh\"'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --show-toplevel)/.claude/hooks/suggest-validation.sh\"'"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'bash \"$(git rev-parse --show-toplevel)/.claude/hooks/log-deploy-activity.sh\"'"
+          }
+        ]
+      }
+    ]
+  }
+}
