@@ -1,0 +1,57 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { getLangFromUrl } from '../i18n/utils';
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = 'Portfolio of Diego Valdez — DevOps engineer.' } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+---
+
+<html lang={lang}>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={description} />
+		<title>{title}</title>
+		<ClientRouter />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<slot />
+		</main>
+		<Footer />
+
+		<script>
+			// Reveal-on-scroll — no animation library, just IntersectionObserver + CSS transitions.
+			// Re-runs on "astro:page-load" (fires on first load AND after every
+			// ClientRouter navigation) so it keeps working across page swaps.
+			function initReveal() {
+				const observer = new IntersectionObserver(
+					(entries) => {
+						for (const entry of entries) {
+							if (entry.isIntersecting) {
+								entry.target.classList.add('is-visible');
+								observer.unobserve(entry.target);
+							}
+						}
+					},
+					{ threshold: 0.15 },
+				);
+
+				document.querySelectorAll('.reveal:not(.is-visible)').forEach((el) => observer.observe(el));
+			}
+
+			document.addEventListener('astro:page-load', initReveal);
+		</script>
+	</body>
+</html>

@@ -1,0 +1,124 @@
+---
+import { getLangFromUrl, useTranslations, localizePath } from '../i18n/utils';
+import { projects } from '../data/projects';
+import { skills } from '../data/skills';
+import ProjectCard from './ProjectCard.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section id="hero" class="hero">
+	<div class="container">
+		<p class="reveal greeting">{t('hero.greeting')}</p>
+		<h1 class="reveal gradient-text">DevOps → Full-stack, learning in public.</h1>
+		<p class="reveal tagline">{t('hero.tagline')}</p>
+		<a href={`${localizePath('/', lang)}#projects`} class="reveal btn btn-primary">{t('hero.cta')}</a>
+	</div>
+</section>
+
+<section id="about" class="container">
+	<h2 class="reveal">{t('about.heading')}</h2>
+	<p class="reveal bio">{t('about.bio')}</p>
+
+	<h3 class="reveal skills-heading">{t('skills.heading')}</h3>
+	<ul class="skills-list">
+		{skills.map((skill) => <li class="reveal">{skill}</li>)}
+	</ul>
+</section>
+
+<section id="projects" class="container">
+	<h2 class="reveal">{t('projects.heading')}</h2>
+	<div class="projects-grid">
+		{projects.map((project) => <ProjectCard project={project} />)}
+	</div>
+</section>
+
+<section id="contact" class="container contact">
+	<h2 class="reveal">{t('contact.heading')}</h2>
+	<p class="reveal">{t('contact.cta')}</p>
+	<div class="reveal contact-links">
+		<a href="https://github.com/Dvzr2k" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+			GitHub
+		</a>
+		<a href="mailto:diegovaldezrodriguez3@gmail.com" class="btn btn-secondary">Email</a>
+	</div>
+</section>
+
+<style>
+	.hero {
+		padding-block: 6rem 5rem;
+		text-align: center;
+	}
+
+	.greeting {
+		color: var(--text-muted);
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+	}
+
+	.hero h1 {
+		font-size: clamp(2rem, 5vw, 3.5rem);
+		font-weight: 800;
+		line-height: 1.1;
+		margin-bottom: 1.25rem;
+	}
+
+	.tagline {
+		color: var(--text-muted);
+		font-size: 1.1rem;
+		max-width: 40rem;
+		margin-inline: auto;
+		margin-bottom: 2rem;
+	}
+
+	h2 {
+		font-size: 2rem;
+		margin-bottom: 1rem;
+	}
+
+	.bio {
+		color: var(--text-muted);
+		max-width: 42rem;
+		margin-bottom: 2rem;
+	}
+
+	.skills-heading {
+		font-size: 1.1rem;
+		margin-bottom: 1rem;
+	}
+
+	.skills-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		list-style: none;
+	}
+
+	.skills-list li {
+		padding: 0.4rem 0.9rem;
+		border-radius: 999px;
+		border: 1px solid var(--border);
+		font-size: 0.9rem;
+		font-weight: 600;
+	}
+
+	.projects-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+		gap: 1.5rem;
+		margin-top: 1.5rem;
+	}
+
+	.contact {
+		text-align: center;
+		padding-block: 5rem;
+	}
+
+	.contact-links {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		margin-top: 1.5rem;
+	}
+</style>

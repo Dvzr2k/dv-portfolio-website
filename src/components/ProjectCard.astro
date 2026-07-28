@@ -1,0 +1,55 @@
+---
+import type { Project } from '../data/projects';
+import { getLangFromUrl } from '../i18n/utils';
+
+interface Props {
+	project: Project;
+}
+
+const { project } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+---
+
+<article class="card reveal">
+	<h3>{project.title}</h3>
+	<p class="description">{project.description[lang]}</p>
+	<ul class="tech-list">
+		{project.tech.map((item) => <li>{item}</li>)}
+	</ul>
+	<a href={project.github} target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+		GitHub →
+	</a>
+</article>
+
+<style>
+	.card h3 {
+		margin-bottom: 0.5rem;
+	}
+
+	.description {
+		color: var(--text-muted);
+		margin-bottom: 1rem;
+	}
+
+	.tech-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		list-style: none;
+		margin-bottom: 1.25rem;
+	}
+
+	.tech-list li {
+		font-size: 0.75rem;
+		font-weight: 600;
+		padding: 0.25rem 0.6rem;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--accent-1) 20%, transparent);
+		color: var(--accent-1);
+	}
+
+	.btn {
+		font-size: 0.9rem;
+		padding: 0.5rem 1rem;
+	}
+</style>

@@ -1,0 +1,48 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+---
+
+<footer>
+	<div class="container footer-inner">
+		<p>&copy; {year} Diego Valdez. {t('footer.rights')}</p>
+		<div class="socials">
+			<a href="https://github.com/Dvzr2k" target="_blank" rel="noopener noreferrer">GitHub</a>
+			<a href="mailto:diegovaldezrodriguez3@gmail.com">Email</a>
+		</div>
+	</div>
+</footer>
+
+<style>
+	footer {
+		border-top: 1px solid var(--border);
+		padding-block: 2rem;
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+
+	.footer-inner {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.socials {
+		display: flex;
+		gap: 1rem;
+	}
+
+	.socials a {
+		text-decoration: none;
+		color: var(--text-muted);
+	}
+
+	.socials a:hover {
+		color: var(--accent-3);
+	}
+</style>

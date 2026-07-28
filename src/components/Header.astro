@@ -1,0 +1,94 @@
+---
+import { getLangFromUrl, useTranslations, localizePath } from '../i18n/utils';
+import { languages } from '../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+// current path with the active locale prefix stripped, so we can rebuild it for the other language
+const rawPath = Astro.url.pathname.replace(/^\/es/, '') || '/';
+---
+
+<header class="site-header">
+	<div class="container header-inner">
+		<a href={localizePath('/', lang)} class="logo gradient-text">Diego Valdez</a>
+
+		<nav aria-label="Main">
+			<a href={`${localizePath('/', lang)}#about`}>{t('nav.about')}</a>
+			<a href={`${localizePath('/', lang)}#projects`}>{t('nav.projects')}</a>
+			<a href={`${localizePath('/', lang)}#contact`}>{t('nav.contact')}</a>
+		</nav>
+
+		<div class="lang-switch" role="group" aria-label="Language">
+			{
+				Object.entries(languages).map(([code]) => (
+					<a
+						href={localizePath(rawPath, code as keyof typeof languages)}
+						class:list={['lang-link', { active: code === lang }]}
+					>
+						{code.toUpperCase()}
+					</a>
+				))
+			}
+		</div>
+	</div>
+</header>
+
+<style>
+	.site-header {
+		border-bottom: 1px solid var(--border);
+		position: sticky;
+		top: 0;
+		background: color-mix(in srgb, var(--bg) 90%, transparent);
+		backdrop-filter: blur(8px);
+		z-index: 10;
+	}
+
+	.header-inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		padding-block: 1rem;
+	}
+
+	.logo {
+		font-weight: 700;
+		font-size: 1.1rem;
+		text-decoration: none;
+	}
+
+	nav {
+		display: flex;
+		gap: 1.5rem;
+	}
+
+	nav a {
+		text-decoration: none;
+		color: var(--text-muted);
+		font-weight: 500;
+	}
+
+	nav a:hover {
+		color: var(--text);
+	}
+
+	.lang-switch {
+		display: flex;
+		gap: 0.5rem;
+		font-size: 0.8rem;
+	}
+
+	.lang-link {
+		text-decoration: none;
+		color: var(--text-muted);
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.35rem;
+	}
+
+	.lang-link.active {
+		color: var(--bg);
+		background: var(--accent-3);
+		font-weight: 700;
+	}
+</style>
