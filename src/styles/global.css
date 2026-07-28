@@ -1,23 +1,23 @@
 :root {
-	--bg: #ffffff;
-	--bg-alt: #f4f4f7; /* card surfaces */
-	--text: #16161d;
-	--text-muted: #5a5a6b;
-	--text-on-accent: #0b0b14; /* fixed dark text for sitting on bright accent fills, independent of theme */
-
-	/* vivid — for backgrounds/fills/borders/glows, not for text on white (too low contrast) */
+	/* vivid — for backgrounds/fills/borders/glows, not for text on a light bg (too low contrast) */
 	--accent-1: #22d3ee; /* electric cyan — trust / technical competence */
 	--accent-2: #a3e635; /* lime green — growth / success (a nod to "all pipelines green") */
 	--accent-3: var(--accent-2); /* CTA / highlight color, kept as its own name for clarity at each call site */
 
-	/* deepened — for text/labels on light backgrounds, kept readable */
+	/* deepened — for text/labels on the light background, kept readable */
 	--accent-1-fg: #0e7490;
 	--accent-2-fg: #4d7c0f;
+
+	--bg: color-mix(in srgb, var(--accent-1) 6%, white); /* pale cyan tint, not flat white */
+	--bg-alt: color-mix(in srgb, var(--accent-2) 10%, white); /* pale lime tint — card surfaces read as a distinct, still-light layer */
+	--text: #16161d;
+	--text-muted: #5a5a6b;
+	--text-on-accent: #0b0b14; /* fixed dark text for sitting on bright accent fills, independent of theme */
 
 	--gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
 	--gradient-text: linear-gradient(135deg, var(--accent-1-fg), var(--accent-2-fg));
 	--glow: 0 0 24px color-mix(in srgb, var(--accent-1) 35%, transparent);
-	--border: #e4e4ec;
+	--border: color-mix(in srgb, var(--accent-1) 15%, #e4e4ec);
 	--max-width: 72rem;
 }
 
