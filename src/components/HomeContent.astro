@@ -11,9 +11,9 @@ const t = useTranslations(lang);
 <section id="hero" class="hero">
 	<div class="container">
 		<p class="reveal greeting">{t('hero.greeting')}</p>
-		<h1 class="reveal gradient-text">DevOps → Full-stack, learning in public.</h1>
+		<h1 class="reveal">DevOps → Full-stack, learning in public.</h1>
 		<p class="reveal tagline">{t('hero.tagline')}</p>
-		<a href={`${localizePath('/', lang)}#projects`} class="reveal btn btn-primary">{t('hero.cta')}</a>
+		<a href={`${localizePath('/', lang)}#projects`} class="reveal btn hero-cta">{t('hero.cta')}</a>
 	</div>
 </section>
 
@@ -47,33 +47,14 @@ const t = useTranslations(lang);
 
 <style>
 	.hero {
-		position: relative;
+		background: var(--gradient);
+		color: var(--text-on-accent);
 		padding-block: 6rem 5rem;
 		text-align: center;
-		overflow: clip;
-	}
-
-	.hero::before {
-		content: '';
-		position: absolute;
-		top: -10rem;
-		left: 50%;
-		translate: -50% 0;
-		width: 40rem;
-		height: 40rem;
-		background: radial-gradient(
-			circle,
-			color-mix(in srgb, var(--accent-1) 35%, transparent) 0%,
-			color-mix(in srgb, var(--accent-2) 20%, transparent) 45%,
-			transparent 70%
-		);
-		filter: blur(60px);
-		z-index: -1;
-		pointer-events: none;
 	}
 
 	.greeting {
-		color: var(--text-muted);
+		color: color-mix(in srgb, var(--text-on-accent) 70%, transparent);
 		font-weight: 600;
 		margin-bottom: 0.5rem;
 	}
@@ -86,11 +67,21 @@ const t = useTranslations(lang);
 	}
 
 	.tagline {
-		color: var(--text-muted);
+		color: color-mix(in srgb, var(--text-on-accent) 75%, transparent);
 		font-size: 1.1rem;
 		max-width: 40rem;
 		margin-inline: auto;
 		margin-bottom: 2rem;
+	}
+
+	.hero-cta {
+		background: var(--text-on-accent);
+		color: var(--accent-2);
+		box-shadow: 0 0 20px color-mix(in srgb, var(--text-on-accent) 30%, transparent);
+	}
+
+	.hero-cta:hover {
+		box-shadow: 0 0 28px color-mix(in srgb, var(--text-on-accent) 45%, transparent);
 	}
 
 	h2 {
