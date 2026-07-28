@@ -47,8 +47,29 @@ const t = useTranslations(lang);
 
 <style>
 	.hero {
+		position: relative;
 		padding-block: 6rem 5rem;
 		text-align: center;
+		overflow: clip;
+	}
+
+	.hero::before {
+		content: '';
+		position: absolute;
+		top: -10rem;
+		left: 50%;
+		translate: -50% 0;
+		width: 40rem;
+		height: 40rem;
+		background: radial-gradient(
+			circle,
+			color-mix(in srgb, var(--accent-1) 35%, transparent) 0%,
+			color-mix(in srgb, var(--accent-2) 20%, transparent) 45%,
+			transparent 70%
+		);
+		filter: blur(60px);
+		z-index: -1;
+		pointer-events: none;
 	}
 
 	.greeting {

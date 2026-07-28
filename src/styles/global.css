@@ -3,10 +3,11 @@
 	--bg-alt: #14141f;
 	--text: #f5f5f7;
 	--text-muted: #a3a3b8;
-	--accent-1: #8b5cf6; /* violet */
-	--accent-2: #f43f5e; /* rose */
-	--accent-3: #fbbf24; /* amber — CTA */
+	--accent-1: #22d3ee; /* electric cyan — trust / technical competence */
+	--accent-2: #a3e635; /* lime green — growth / success (a nod to "all pipelines green") */
+	--accent-3: var(--accent-2); /* CTA / highlight color, kept as its own name for clarity at each call site */
 	--gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+	--glow: 0 0 24px color-mix(in srgb, var(--accent-1) 45%, transparent);
 	--border: #26263a;
 	--max-width: 72rem;
 }
@@ -73,12 +74,22 @@ a {
 .btn-primary {
 	background: var(--accent-3);
 	color: var(--bg);
+	box-shadow: 0 0 20px color-mix(in srgb, var(--accent-2) 40%, transparent);
+}
+
+.btn-primary:hover {
+	box-shadow: 0 0 32px color-mix(in srgb, var(--accent-2) 60%, transparent);
 }
 
 .btn-secondary {
 	background: transparent;
 	border: 1px solid var(--border);
 	color: var(--text);
+}
+
+.btn-secondary:hover {
+	border-color: var(--accent-1);
+	color: var(--accent-1);
 }
 
 .card {
@@ -88,11 +99,13 @@ a {
 	padding: 1.5rem;
 	transition:
 		border-color 0.15s ease,
+		box-shadow 0.15s ease,
 		transform 0.15s ease;
 }
 
 .card:hover {
 	border-color: var(--accent-1);
+	box-shadow: var(--glow);
 	transform: translateY(-4px);
 }
 
