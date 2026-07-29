@@ -10,6 +10,7 @@
 
 	--bg: color-mix(in srgb, var(--accent-1) 6%, white); /* pale cyan tint, not flat white */
 	--bg-alt: color-mix(in srgb, var(--accent-2) 10%, white); /* pale lime tint — card surfaces read as a distinct, still-light layer */
+	--header-bg: color-mix(in srgb, var(--accent-1) 14%, color-mix(in srgb, var(--accent-2) 10%, white)); /* noticeably more colored than the page bg, so the header doesn't just read as white */
 	--text: #16161d;
 	--text-muted: #5a5a6b;
 	--text-on-accent: #0b0b14; /* fixed dark text for sitting on bright accent fills, independent of theme */
