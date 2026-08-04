@@ -7,16 +7,26 @@ const t = useTranslations(lang);
 
 // current path with the active locale prefix stripped, so we can rebuild it for the other language
 const rawPath = Astro.url.pathname.replace(/^\/es/, '') || '/';
+
+const navItems = [
+	{ path: '/about', label: t('nav.about') },
+	{ path: '/projects', label: t('nav.projects') },
+	{ path: '/contact', label: t('nav.contact') },
+];
 ---
 
 <header class="site-header">
 	<div class="container header-inner">
-		<a href={localizePath('/', lang)} class="logo gradient-text">Diego Valdez</a>
+		<a href={localizePath('/', lang)} class="logo">Diego Valdez</a>
 
 		<nav aria-label="Main">
-			<a href={`${localizePath('/', lang)}#about`}>{t('nav.about')}</a>
-			<a href={`${localizePath('/', lang)}#projects`}>{t('nav.projects')}</a>
-			<a href={`${localizePath('/', lang)}#contact`}>{t('nav.contact')}</a>
+			{
+				navItems.map((item) => (
+					<a href={localizePath(item.path, lang)} class:list={{ active: rawPath === item.path }}>
+						{item.label}
+					</a>
+				))
+			}
 		</nav>
 
 		<div class="lang-switch" role="group" aria-label="Language">
@@ -34,14 +44,42 @@ const rawPath = Astro.url.pathname.replace(/^\/es/, '') || '/';
 	</div>
 </header>
 
+<script>
+	// Background stays transparent always — only the text color flips, once
+	// scrolled past the point where the body gradient (global.css --gradient)
+	// has settled into its dark landing tone, matching that gradient's own
+	// 100vh anchor so the two stay in sync without measuring any element.
+	const header = document.querySelector('.site-header');
+
+	function updateHeaderState() {
+		if (!header) return;
+		header.classList.toggle('on-dark', window.scrollY > window.innerHeight * 0.85);
+	}
+
+	updateHeaderState();
+	document.addEventListener('scroll', updateHeaderState, { passive: true });
+</script>
+
 <style>
 	.site-header {
-		border-bottom: 1px solid var(--border);
-		position: sticky;
+		/* fixed, not sticky — sticky still occupies its own row in the layout
+		   (so "transparent" only ever revealed the plain page bg behind it).
+		   fixed takes it out of flow entirely so it overlaps the body's
+		   gradient, which now runs the full page — background stays fully
+		   transparent always, no border/tint of its own that would read as
+		   a separate block; only the text color adapts. */
+		position: fixed;
 		top: 0;
-		background: color-mix(in srgb, var(--header-bg) 92%, transparent);
-		backdrop-filter: blur(8px);
-		z-index: 10;
+		left: 0;
+		right: 0;
+		background: transparent;
+		color: var(--text-on-accent);
+		z-index: 20;
+		transition: color 0.25s ease;
+	}
+
+	.site-header.on-dark {
+		color: var(--text-on-dark);
 	}
 
 	.header-inner {
@@ -56,6 +94,7 @@ const rawPath = Astro.url.pathname.replace(/^\/es/, '') || '/';
 		font-weight: 700;
 		font-size: 1.1rem;
 		text-decoration: none;
+		color: inherit;
 	}
 
 	nav {
@@ -65,12 +104,18 @@ const rawPath = Astro.url.pathname.replace(/^\/es/, '') || '/';
 
 	nav a {
 		text-decoration: none;
-		color: var(--text-muted);
+		color: inherit;
+		opacity: 0.75;
 		font-weight: 500;
 	}
 
 	nav a:hover {
-		color: var(--text);
+		opacity: 1;
+	}
+
+	nav a.active {
+		opacity: 1;
+		font-weight: 700;
 	}
 
 	.lang-switch {
@@ -81,12 +126,14 @@ const rawPath = Astro.url.pathname.replace(/^\/es/, '') || '/';
 
 	.lang-link {
 		text-decoration: none;
-		color: var(--text-muted);
+		color: inherit;
+		opacity: 0.75;
 		padding: 0.25rem 0.5rem;
 		border-radius: 0.35rem;
 	}
 
 	.lang-link.active {
+		opacity: 1;
 		color: var(--text-on-accent);
 		background: var(--accent-3);
 		font-weight: 700;

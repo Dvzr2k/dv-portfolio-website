@@ -1,0 +1,26 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import { projects } from '../data/projects';
+import ProjectCard from './ProjectCard.astro';
+import PageHeader from './PageHeader.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<PageHeader title={t('projects.heading')} />
+
+<section class="container">
+	<div class="projects-grid">
+		{projects.map((project) => <ProjectCard project={project} />)}
+	</div>
+</section>
+
+<style>
+	.projects-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+		gap: 1.5rem;
+		margin-top: 1.5rem;
+	}
+</style>

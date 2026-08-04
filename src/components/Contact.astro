@@ -1,0 +1,44 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import PageHeader from './PageHeader.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<PageHeader title={t('contact.heading')} />
+
+<section class="container contact">
+	<p class="reveal">{t('contact.cta')}</p>
+	<div class="reveal contact-links">
+		<a href="https://github.com/Dvzr2k" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+			GitHub
+		</a>
+		<a
+			href="https://www.linkedin.com/in/diego-valdez-rodriguez"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="btn btn-primary"
+		>
+			LinkedIn
+		</a>
+		<a href="mailto:diegovaldezrodriguez3@gmail.com" class="btn btn-on-gradient">Email</a>
+	</div>
+</section>
+
+<style>
+	.contact {
+		/* same reasoning as About's .bio — this content sits past the
+		   gradient's dark landing point on any normal-height screen */
+		color: var(--text-on-dark);
+		text-align: center;
+		padding-block: 5rem;
+	}
+
+	.contact-links {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		margin-top: 1.5rem;
+	}
+</style>

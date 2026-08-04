@@ -1,0 +1,53 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import { skills } from '../data/skills';
+import PageHeader from './PageHeader.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<PageHeader title={t('about.heading')} />
+
+<section class="container">
+	<p class="reveal bio">{t('about.bio')}</p>
+
+	<h2 class="reveal skills-heading">{t('skills.heading')}</h2>
+	<ul class="skills-list">
+		{skills.map((skill) => <li class="reveal">{skill}</li>)}
+	</ul>
+</section>
+
+<style>
+	.bio {
+		/* the page background settles into the dark "Deep Space" landing
+		   tone (global.css --gradient) well before this content, on any
+		   normal-height screen — dark-on-accent text would be near-invisible
+		   here, so this uses the light text-on-dark token instead */
+		color: color-mix(in srgb, var(--text-on-dark) 85%, transparent);
+		max-width: 42rem;
+		margin-bottom: 2rem;
+	}
+
+	.skills-heading {
+		color: var(--text-on-dark);
+		font-size: 1.1rem;
+		margin-bottom: 1rem;
+	}
+
+	.skills-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		list-style: none;
+	}
+
+	.skills-list li {
+		background: var(--text-on-accent);
+		color: var(--accent-2);
+		padding: 0.4rem 0.9rem;
+		border-radius: 999px;
+		font-size: 0.9rem;
+		font-weight: 600;
+	}
+</style>

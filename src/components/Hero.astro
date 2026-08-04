@@ -1,0 +1,292 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section class="hero">
+	<div class="gha-card reveal" style="--reveal-delay: 0s">
+		<div class="gha-header">
+			<span class="gha-status-icon">
+				<svg
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="3"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true"
+				>
+					<polyline points="20 6 9 17 4 12"></polyline>
+				</svg>
+			</span>
+			<div>
+				<div class="gha-title">intro.yml #1 · whoami</div>
+				<div class="gha-meta">workflow_dispatch · main · 2.03s</div>
+			</div>
+		</div>
+
+		<div class="gha-steps">
+			<div class="gha-step reveal" style="--reveal-delay: 0.3s">
+				<div class="gha-step-head">
+					<span class="gha-chevron" aria-hidden="true">▾</span>
+					<svg
+						class="gha-check"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="3"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true"
+					>
+						<polyline points="20 6 9 17 4 12"></polyline>
+					</svg>
+					<span class="gha-step-name">Run whoami</span>
+					<span class="gha-step-time">0.02s</span>
+				</div>
+				<div class="gha-step-log">Diego Valdez — {t('hero.headline')}</div>
+			</div>
+
+			<div class="gha-step reveal" style="--reveal-delay: 0.55s">
+				<div class="gha-step-head">
+					<span class="gha-chevron" aria-hidden="true">▾</span>
+					<svg
+						class="gha-check"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="3"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true"
+					>
+						<polyline points="20 6 9 17 4 12"></polyline>
+					</svg>
+					<span class="gha-step-name">Run cat motd</span>
+					<span class="gha-step-time">0.01s</span>
+				</div>
+				<div class="gha-step-log">{t('hero.tagline')}</div>
+			</div>
+		</div>
+
+		<div class="gha-footer reveal" style="--reveal-delay: 0.85s">
+			<span class="pulse" aria-hidden="true"></span> All jobs passed
+		</div>
+	</div>
+
+	<a href="#projects" class="scroll-cue" aria-label="Scroll to projects">
+		<svg
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			aria-hidden="true"
+		>
+			<polyline points="6 9 12 15 18 9"></polyline>
+		</svg>
+	</a>
+</section>
+
+<style>
+	.hero {
+		/* background intentionally not set here — body's gradient (global.css
+		   --gradient) shows through, running continuously through Hero and
+		   the rest of the page instead of resetting per-section */
+		position: relative;
+		color: var(--text-on-accent);
+		/* fills the viewport so "A few things I've built" starts below the
+		   fold — invisible (and un-triggered) until the user actually scrolls,
+		   instead of both being visible-and-revealed at once on load */
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding-block: 5rem 3rem; /* extra top padding clears the fixed header */
+	}
+
+	/* GitHub Actions' own dark-theme surface colors, kept as-is for
+	   authenticity — only the success/accent color is the site's own lime
+	   instead of GitHub's green */
+	.gha-card {
+		--gh-bg: #0d1117;
+		--gh-border: #30363d;
+		--gh-heading: #c9d1d9;
+		--gh-muted: #8b949e;
+
+		width: min(46rem, 92vw);
+		border-radius: 0.6rem;
+		overflow: hidden;
+		background: var(--gh-bg);
+		border: 1px solid var(--gh-border);
+		box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+		text-align: left;
+	}
+
+	.gha-header {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		padding: 1.5rem 1.75rem;
+		border-bottom: 1px solid var(--gh-border);
+	}
+
+	.gha-status-icon {
+		flex: none;
+		width: 1.9rem;
+		height: 1.9rem;
+		border-radius: 50%;
+		background: var(--accent-2);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 0.1rem;
+	}
+
+	.gha-status-icon svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		stroke: var(--text-on-accent);
+	}
+
+	.gha-title {
+		color: var(--gh-heading);
+		font-weight: 600;
+		font-size: 1.15rem;
+	}
+
+	.gha-meta {
+		color: var(--gh-muted);
+		font-size: 0.88rem;
+		margin-top: 0.25rem;
+	}
+
+	.gha-steps {
+		padding: 0.5rem 0;
+	}
+
+	.gha-step {
+		padding: 0.9rem 1.75rem;
+	}
+
+	.gha-step-head {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+	}
+
+	.gha-chevron {
+		color: var(--gh-muted);
+		font-size: 0.8rem;
+		width: 0.9rem;
+	}
+
+	.gha-check {
+		color: var(--accent-2);
+		flex: none;
+		width: 1.15rem;
+		height: 1.15rem;
+	}
+
+	.gha-step-name {
+		color: var(--gh-heading);
+		font-size: 1.02rem;
+	}
+
+	.gha-step-time {
+		margin-left: auto;
+		color: var(--gh-muted);
+		font-size: 0.85rem;
+	}
+
+	.gha-step-log {
+		margin: 0.6rem 0 0 1.8rem;
+		padding-left: 1rem;
+		border-left: 2px solid var(--gh-border);
+		color: var(--gh-muted);
+		font-size: 0.95rem;
+		line-height: 1.65;
+	}
+
+	.gha-footer {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 1.1rem 1.75rem;
+		border-top: 1px solid var(--gh-border);
+		color: var(--accent-2);
+		font-size: 0.98rem;
+		font-weight: 600;
+	}
+
+	.gha-footer .pulse {
+		width: 0.6rem;
+		height: 0.6rem;
+		border-radius: 50%;
+		background: var(--accent-2);
+		box-shadow: 0 0 8px var(--accent-2);
+		animation: pulse 2s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.4;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.gha-footer .pulse {
+			animation: none;
+		}
+	}
+
+	.scroll-cue {
+		position: absolute;
+		left: 50%;
+		bottom: 2rem;
+		transform: translateX(-50%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: 50%;
+		border: 1px solid color-mix(in srgb, var(--text-on-dark) 45%, transparent);
+		color: var(--text-on-dark);
+		opacity: 0.85;
+		animation: bounce 1.8s ease-in-out infinite;
+	}
+
+	.scroll-cue svg {
+		width: 1.75rem;
+		height: 1.75rem;
+	}
+
+	.scroll-cue:hover {
+		opacity: 1;
+		border-color: color-mix(in srgb, var(--text-on-dark) 70%, transparent);
+	}
+
+	@keyframes bounce {
+		0%,
+		100% {
+			transform: translateX(-50%) translateY(0);
+		}
+		50% {
+			transform: translateX(-50%) translateY(0.4rem);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.scroll-cue {
+			animation: none;
+		}
+	}
+</style>

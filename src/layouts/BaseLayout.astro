@@ -11,6 +11,12 @@ interface Props {
 
 const { title, description = 'Portfolio of Diego Valdez — DevOps engineer.' } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
+
+/* absolute, derived from the current request rather than a hardcoded
+   domain — resolves correctly on localhost today and on whatever domain
+   this ends up deployed to later, with no config change needed */
+const ogImage = new URL('/og-image.png', Astro.url).toString();
+const canonicalUrl = new URL(Astro.url.pathname, Astro.url).toString();
 ---
 
 <html lang={lang}>
@@ -21,6 +27,19 @@ const lang = getLangFromUrl(Astro.url);
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		<title>{title}</title>
+
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Diego Valdez" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:locale" content={lang === 'es' ? 'es_ES' : 'en_US'} />
+
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImage} />
 	</head>
 	<body>
 		<Header />

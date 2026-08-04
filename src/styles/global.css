@@ -1,4 +1,14 @@
+@font-face {
+	font-family: 'JetBrains Mono';
+	font-weight: 400 700;
+	font-style: normal;
+	font-display: swap;
+	src: url('/fonts/jetbrains-mono.woff2') format('woff2');
+}
+
 :root {
+	--font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+
 	/* vivid — for backgrounds/fills/borders/glows, not for text on a light bg (too low contrast) */
 	--accent-1: #22d3ee; /* electric cyan — trust / technical competence */
 	--accent-2: #a3e635; /* lime green — growth / success (a nod to "all pipelines green") */
@@ -8,14 +18,18 @@
 	--accent-1-fg: #0e7490;
 	--accent-2-fg: #4d7c0f;
 
-	--bg: color-mix(in srgb, var(--accent-1) 6%, white); /* pale cyan tint, not flat white */
-	--bg-alt: color-mix(in srgb, var(--accent-2) 10%, white); /* pale lime tint — card surfaces read as a distinct, still-light layer */
-	--header-bg: color-mix(in srgb, var(--accent-1) 14%, color-mix(in srgb, var(--accent-2) 10%, white)); /* noticeably more colored than the page bg, so the header doesn't just read as white */
+	--bg-alt: color-mix(in srgb, var(--accent-1) 5%, white); /* cards read as raised light surfaces on top of the page gradient */
 	--text: #16161d;
 	--text-muted: #5a5a6b;
 	--text-on-accent: #0b0b14; /* fixed dark text for sitting on bright accent fills, independent of theme */
+	--text-on-dark: #f2f2f5; /* fixed light text for sitting on the dark landing tone below the fold */
 
-	--gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+	/* vivid at the very top (hero), eased out to a dark landing tone by one
+	   viewport-height down — anchored to vh so the transition lands at the
+	   same scroll depth regardless of how long the page is below it.
+	   "Deep Space" — cyan pushed to near-black, continuing that hue rather
+	   than introducing a new one */
+	--gradient: linear-gradient(180deg, var(--accent-1) 0%, var(--accent-2) 46vh, #0a1620 100vh);
 	--gradient-text: linear-gradient(135deg, var(--accent-1-fg), var(--accent-2-fg));
 	--glow: 0 0 24px color-mix(in srgb, var(--accent-1) 35%, transparent);
 	--border: color-mix(in srgb, var(--accent-1) 15%, #e4e4ec);
@@ -35,15 +49,10 @@ html {
 }
 
 body {
-	background: var(--bg);
+	background: var(--gradient);
 	color: var(--text);
-	font-family:
-		system-ui,
-		-apple-system,
-		'Segoe UI',
-		Roboto,
-		sans-serif;
-	line-height: 1.6;
+	font-family: var(--font-mono);
+	line-height: 1.65;
 }
 
 img {
@@ -91,6 +100,19 @@ a {
 	box-shadow: 0 0 32px color-mix(in srgb, var(--accent-2) 60%, transparent);
 }
 
+/* for buttons sitting directly on top of the bold --gradient background
+   (e.g. inside the homepage's gradient zone) — dark fill instead of a
+   bright accent, since a bright button on a bright gradient loses contrast */
+.btn-on-gradient {
+	background: var(--text-on-accent);
+	color: var(--accent-2);
+	box-shadow: 0 0 20px color-mix(in srgb, var(--text-on-accent) 30%, transparent);
+}
+
+.btn-on-gradient:hover {
+	box-shadow: 0 0 28px color-mix(in srgb, var(--text-on-accent) 45%, transparent);
+}
+
 .btn-secondary {
 	background: transparent;
 	border: 1px solid var(--border);
@@ -123,13 +145,16 @@ section {
 	padding-block: 4rem;
 }
 
-/* fade-in-on-scroll, no JS library — toggled by a tiny inline observer script */
+/* fade-in-on-scroll, no JS library — toggled by a tiny inline observer script.
+   --reveal-delay lets sibling elements cascade in sequence instead of all
+   fading in at the same instant; set it inline per-element where that matters. */
 .reveal {
 	opacity: 0;
 	transform: translateY(1rem);
 	transition:
 		opacity 0.5s ease,
 		transform 0.5s ease;
+	transition-delay: var(--reveal-delay, 0s);
 }
 
 .reveal.is-visible {

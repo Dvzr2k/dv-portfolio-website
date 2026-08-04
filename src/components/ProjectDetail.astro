@@ -1,0 +1,325 @@
+---
+import type { Project } from '../data/projects';
+import { getLangFromUrl, useTranslations, localizePath } from '../i18n/utils';
+import CheckIcon from './CheckIcon.astro';
+
+interface Props {
+	project: Project;
+}
+
+const { project } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section class="container detail">
+	<a href={localizePath('/projects', lang)} class="back-link reveal">{t('project.back')}</a>
+
+	<div class="run-card reveal" style="--reveal-delay: 0.1s">
+		<div class="run-header">
+			<span class="status-icon"><CheckIcon /></span>
+			<div>
+				<div class="run-title">deploy.yml #1 · {project.slug}</div>
+				<div class="run-meta">workflow_dispatch · main · {project.status}</div>
+			</div>
+		</div>
+
+		<div class="steps">
+			<div class="step reveal" style="--reveal-delay: 0.2s">
+				<div class="step-head">
+					<span class="chevron" aria-hidden="true">▾</span>
+					<span class="check"><CheckIcon /></span>
+					<span class="step-name">{t('project.overview')}</span>
+				</div>
+				<p class="step-body">{project.description[lang]}</p>
+			</div>
+
+			<div class="step reveal" style="--reveal-delay: 0.35s">
+				<div class="step-head">
+					<span class="chevron" aria-hidden="true">▾</span>
+					<span class="check"><CheckIcon /></span>
+					<span class="step-name">{t('project.architecture')}</span>
+				</div>
+				<p class="step-body">{project.architecture[lang]}</p>
+				{
+					project.diagram && (
+						<div class="diagram-wrap">
+							<pre class="mermaid">{project.diagram}</pre>
+						</div>
+					)
+				}
+			</div>
+
+			<div class="step reveal" style="--reveal-delay: 0.5s">
+				<div class="step-head">
+					<span class="chevron" aria-hidden="true">▾</span>
+					<span class="check"><CheckIcon /></span>
+					<span class="step-name">{t('project.stack')}</span>
+				</div>
+				<p class="step-body stack-line">{project.tech.join(' · ')}</p>
+			</div>
+
+			<div class="step reveal" style="--reveal-delay: 0.65s">
+				<div class="step-head">
+					<span class="chevron" aria-hidden="true">▾</span>
+					<span class="check"><CheckIcon /></span>
+					<span class="step-name">{t('project.outcome')}</span>
+				</div>
+				<div class="step-body outcome-links">
+					<a href={project.github} target="_blank" rel="noopener noreferrer" class="outcome-link">
+						{t('project.viewRepo')} ↗
+					</a>
+					{
+						project.demo && (
+							<a href={project.demo.url} target="_blank" rel="noopener noreferrer" class="outcome-link">
+								{project.demo.label[lang]} ↗
+							</a>
+						)
+					}
+				</div>
+			</div>
+		</div>
+
+		<div class="run-footer reveal" style="--reveal-delay: 0.8s">
+			<span class="pulse" aria-hidden="true"></span> {t('project.allStepsPassed')}
+		</div>
+	</div>
+</section>
+
+<style>
+	.detail {
+		padding-block: 8rem 5rem;
+	}
+
+	.back-link {
+		display: inline-block;
+		/* this sits directly on the page background, near the very top of
+		   the page — always inside the bright cyan/lime zone of the body
+		   gradient (global.css --gradient) on any normal viewport, same as
+		   Hero's own copy, so it uses the same dark-on-bright text color */
+		color: var(--text-on-accent);
+		opacity: 0.85;
+		font-weight: 600;
+		font-size: 0.9rem;
+		text-decoration: none;
+		margin-bottom: 1.5rem;
+	}
+
+	.back-link:hover {
+		opacity: 1;
+	}
+
+	/* GitHub Actions' own dark-theme surface colors, matching Hero's
+	   .gha-card and ProjectCard — same palette everywhere so the whole
+	   site reads as one consistent system */
+	.run-card {
+		--gh-bg: #0d1117;
+		--gh-border: #30363d;
+		--gh-heading: #c9d1d9;
+		--gh-muted: #8b949e;
+
+		background: var(--gh-bg);
+		border: 1px solid var(--gh-border);
+		border-radius: 0.6rem;
+		overflow: hidden;
+		box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.4);
+	}
+
+	.run-header {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		padding: 1.5rem 1.75rem;
+		border-bottom: 1px solid var(--gh-border);
+	}
+
+	.status-icon {
+		flex: none;
+		width: 1.9rem;
+		height: 1.9rem;
+		border-radius: 50%;
+		background: var(--accent-2);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 0.1rem;
+	}
+
+	.status-icon svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		stroke: var(--text-on-accent);
+	}
+
+	.run-title {
+		color: var(--gh-heading);
+		font-weight: 700;
+		font-size: 1.15rem;
+	}
+
+	.run-meta {
+		color: var(--gh-muted);
+		font-size: 0.85rem;
+		margin-top: 0.25rem;
+	}
+
+	.steps {
+		padding: 0.5rem 0;
+	}
+
+	.step {
+		padding: 1.1rem 1.75rem;
+		border-bottom: 1px solid var(--gh-border);
+	}
+
+	.step:last-child {
+		border-bottom: none;
+	}
+
+	.step-head {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+	}
+
+	.chevron {
+		color: var(--gh-muted);
+		font-size: 0.8rem;
+	}
+
+	.check {
+		color: var(--accent-2);
+		width: 1.1rem;
+		height: 1.1rem;
+		flex: none;
+		display: flex;
+	}
+
+	.check svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.step-name {
+		color: var(--gh-heading);
+		font-weight: 700;
+		font-size: 1rem;
+	}
+
+	.step-body {
+		margin: 0.65rem 0 0 1.75rem;
+		padding-left: 1rem;
+		border-left: 2px solid var(--gh-border);
+		color: var(--gh-muted);
+		font-size: 0.92rem;
+		line-height: 1.7;
+		max-width: 42rem;
+	}
+
+	.stack-line {
+		color: var(--accent-1);
+	}
+
+	/* wide diagrams scroll inside their own box rather than the page —
+	   the source is copied verbatim from the project's GitHub README, so
+	   its natural width isn't tuned to any particular viewport */
+	.diagram-wrap {
+		margin: 1rem 0 0 1.75rem;
+		max-width: 42rem;
+		overflow-x: auto;
+		border: 1px solid var(--gh-border);
+		border-radius: 0.4rem;
+		padding: 1rem;
+	}
+
+	.diagram-wrap :global(svg) {
+		display: block;
+		margin-inline: auto;
+	}
+
+	.outcome-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1.25rem;
+	}
+
+	.outcome-link {
+		color: var(--accent-2);
+		font-weight: 600;
+		font-size: 0.92rem;
+		text-decoration: none;
+	}
+
+	.outcome-link:hover {
+		text-decoration: underline;
+	}
+
+	.run-footer {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 1.1rem 1.75rem;
+		border-top: 1px solid var(--gh-border);
+		color: var(--accent-2);
+		font-size: 0.95rem;
+		font-weight: 700;
+	}
+
+	.run-footer .pulse {
+		width: 0.55rem;
+		height: 0.55rem;
+		border-radius: 50%;
+		background: var(--accent-2);
+		box-shadow: 0 0 8px var(--accent-2);
+		animation: pulse 2s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.4;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.run-footer .pulse {
+			animation: none;
+		}
+	}
+</style>
+
+<script>
+	// Renders any project's real README diagram (copied verbatim into
+	// data/projects.ts) client-side, themed to match this site's dark
+	// GHA-card palette instead of GitHub's default mermaid styling. A
+	// no-op on project pages with no `.mermaid` block on them.
+	import mermaid from 'mermaid';
+
+	mermaid.initialize({
+		startOnLoad: false,
+		theme: 'base',
+		themeVariables: {
+			fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+			background: '#0d1117',
+			primaryColor: '#161b22',
+			primaryTextColor: '#c9d1d9',
+			primaryBorderColor: '#30363d',
+			lineColor: '#8b949e',
+			secondaryColor: '#161b22',
+			secondaryTextColor: '#c9d1d9',
+			secondaryBorderColor: '#30363d',
+			tertiaryColor: '#10151c',
+			tertiaryTextColor: '#c9d1d9',
+			tertiaryBorderColor: '#30363d',
+			clusterBkg: '#10151c',
+			clusterBorder: '#30363d',
+			edgeLabelBackground: '#0d1117',
+			nodeTextColor: '#c9d1d9',
+		},
+	});
+
+	mermaid.run({ querySelector: '.mermaid' });
+</script>

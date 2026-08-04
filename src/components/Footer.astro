@@ -8,9 +8,10 @@ const year = new Date().getFullYear();
 
 <footer>
 	<div class="container footer-inner">
-		<p>&copy; {year} Diego Valdez. {t('footer.rights')}</p>
+		<p class="copyright">&copy; {year} Diego Valdez. {t('footer.rights')}</p>
 		<div class="socials">
 			<a href="https://github.com/Dvzr2k" target="_blank" rel="noopener noreferrer">GitHub</a>
+			<a href="https://www.linkedin.com/in/diego-valdez-rodriguez" target="_blank" rel="noopener noreferrer">LinkedIn</a>
 			<a href="mailto:diegovaldezrodriguez3@gmail.com">Email</a>
 		</div>
 	</div>
@@ -18,9 +19,11 @@ const year = new Date().getFullYear();
 
 <style>
 	footer {
-		border-top: 1px solid var(--border);
+		/* the footer is always the last element on the page, so it always
+		   lands past the gradient's 100vh mark, on the dark landing tone —
+		   light text, unconditionally, no need to track scroll position */
+		color: var(--text-on-dark);
 		padding-block: 2rem;
-		color: var(--text-muted);
 		font-size: 0.9rem;
 	}
 
@@ -32,6 +35,10 @@ const year = new Date().getFullYear();
 		justify-content: space-between;
 	}
 
+	.copyright {
+		color: color-mix(in srgb, var(--text-on-dark) 75%, transparent);
+	}
+
 	.socials {
 		display: flex;
 		gap: 1rem;
@@ -39,10 +46,12 @@ const year = new Date().getFullYear();
 
 	.socials a {
 		text-decoration: none;
-		color: var(--text-muted);
+		color: var(--text-on-dark);
+		opacity: 0.75;
+		font-weight: 500;
 	}
 
 	.socials a:hover {
-		color: var(--accent-2-fg);
+		opacity: 1;
 	}
 </style>
