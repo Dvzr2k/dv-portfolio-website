@@ -48,12 +48,12 @@ const navItems = [
 	// Background stays transparent always — only the text color flips, once
 	// scrolled past the point where the body gradient (global.css --gradient)
 	// has settled into its dark landing tone, matching that gradient's own
-	// 100vh anchor so the two stay in sync without measuring any element.
+	// 55vh anchor so the two stay in sync without measuring any element.
 	const header = document.querySelector('.site-header');
 
 	function updateHeaderState() {
 		if (!header) return;
-		header.classList.toggle('on-dark', window.scrollY > window.innerHeight * 0.85);
+		header.classList.toggle('on-dark', window.scrollY > window.innerHeight * 0.5);
 	}
 
 	updateHeaderState();

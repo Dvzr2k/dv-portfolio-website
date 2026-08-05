@@ -24,12 +24,13 @@
 	--text-on-accent: #0b0b14; /* fixed dark text for sitting on bright accent fills, independent of theme */
 	--text-on-dark: #f2f2f5; /* fixed light text for sitting on the dark landing tone below the fold */
 
-	/* vivid at the very top (hero), eased out to a dark landing tone by one
-	   viewport-height down — anchored to vh so the transition lands at the
-	   same scroll depth regardless of how long the page is below it.
-	   "Deep Space" — cyan pushed to near-black, continuing that hue rather
-	   than introducing a new one */
-	--gradient: linear-gradient(180deg, var(--accent-1) 0%, var(--accent-2) 46vh, #0a1620 100vh);
+	/* vivid at the very top, eased out to a dark landing tone by just over
+	   half a viewport-height down — short pages (About, Contact) reach the
+	   dark tone within a single screen instead of staying bright/green the
+	   whole way, since they never have enough content height to scroll a
+	   full 100vh down. "Deep Space" — cyan pushed to near-black, continuing
+	   that hue rather than introducing a new one */
+	--gradient: linear-gradient(180deg, var(--accent-1) 0%, var(--accent-2) 22vh, #0a1620 55vh);
 	--gradient-text: linear-gradient(135deg, var(--accent-1-fg), var(--accent-2-fg));
 	--glow: 0 0 24px color-mix(in srgb, var(--accent-1) 35%, transparent);
 	--border: color-mix(in srgb, var(--accent-1) 15%, #e4e4ec);

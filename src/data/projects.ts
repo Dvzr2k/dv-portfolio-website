@@ -13,10 +13,6 @@ export interface Project {
 	   projects with neither (e.g. this portfolio, before it has a public
 	   domain to link to). */
 	demo?: { url: string; label: { en: string; es: string } };
-	/* raw mermaid source, copied verbatim from the project's own GitHub
-	   README — same diagram a visitor would see there, rendered client-side
-	   to match this site's dark theme instead of GitHub's default styling */
-	diagram?: string;
 }
 
 export const projects: Project[] = [
@@ -38,50 +34,6 @@ export const projects: Project[] = [
 			url: 'https://drive.google.com/file/d/108DxbGT0QErEHmow4BqM0hqDFBDXJ9KQ/view?usp=drive_link',
 			label: { en: 'Watch the demo video', es: 'Ver el video demo' },
 		},
-		diagram: `flowchart TD
-    CLIENT["Client (Browser)"]
-    R53["Route 53<br/>petclinic.app-valdezr.link"]
-    ACM["ACM — TLS cert"]
-    ALB["ALB — Ingress<br/>public subnet"]
-
-    subgraph ACCOUNT["AWS Account · eu-central-1"]
-        subgraph VPC["VPC 10.0.0.0/16 — public subnets only, no NAT"]
-            subgraph EKS["EKS Cluster — petclinic-{env}"]
-                APIGW["API Gateway :8080"]
-                CFG["Config Server :8888"]
-                DISC["Discovery Server :8761"]
-                ADMIN["Admin Server :9090"]
-                CUST["Customers Svc :8081"]
-                VIS["Visits Svc :8082"]
-                VETS["Vets Svc :8083"]
-                GENAI["GenAI Svc :8084"]
-                ARGOCD["ArgoCD"]
-                OBS["Prometheus · Grafana · Loki · Zipkin"]
-            end
-            RDS["RDS MySQL<br/>shared · single-AZ"]
-        end
-        ECR["ECR — image registry"]
-        SECRETS["Secrets Manager"]
-    end
-
-    GHREPO["GitHub — platform repo"]
-    GHA["GitHub Actions<br/>build → scan → push"]
-
-    CLIENT --> R53 --> ALB
-    ACM -.-> ALB
-    ALB --> APIGW
-    CFG --> DISC
-    APIGW --> CUST
-    APIGW --> VIS
-    APIGW --> VETS
-    APIGW --> GENAI
-    CUST --> RDS
-    VIS --> RDS
-    VETS -->|SQL| RDS
-    ECR -.->|image pull| EKS
-    SECRETS -.->|secret sync| EKS
-    GHA -.->|push image| ECR
-    GHREPO -.->|watches & syncs| ARGOCD`,
 	},
 	{
 		slug: 'my-react-app',
@@ -101,47 +53,6 @@ export const projects: Project[] = [
 			url: 'https://d255xh9kackac4.cloudfront.net',
 			label: { en: 'Visit live site', es: 'Ver sitio en vivo' },
 		},
-		diagram: `flowchart TD
-    DEV["👨‍💻 Developer\\n(local)"]
-    GH["🐙 GitHub\\npush to main"]
-    GHA["⚙️ GitHub Actions\\nnpm ci + npm run build\\nOIDC → AWS auth"]
-    OIDC["🔑 IAM OIDC Role\\nno stored keys"]
-
-    subgraph CLAUDE ["🤖 Claude Code — AI Orchestration"]
-        direction TB
-        TFW["tf-writer\\nTerraform gen"]
-        SEC["security-auditor\\nTF audit · Sonnet"]
-        COST["cost-optimizer\\nHaiku"]
-        DRIFT["drift-detector\\nHaiku"]
-        HOOKS["🛡️ Safety Hooks\\nUserPromptSubmit · PreToolUse · PostToolUse"]
-        SKILLS["Skills: /deploy · /tf-plan · /tf-apply · /infra-audit"]
-    end
-
-    TF["🏗️ Terraform\\nIaC Provisioning"]
-
-    subgraph AWS ["☁️ AWS Infrastructure"]
-        S3["🪣 S3 Bucket\\nStatic hosting · OAC"]
-        CF["☁️ CloudFront\\nCDN · Cache invalidation"]
-        TFSTATE["🔒 TF State\\nS3 backend\\n(DynamoDB lock optional)"]
-    end
-
-    USER["🌐 End User\\nReact SPA"]
-
-    DEV -->|git push| GH
-    GH -->|trigger workflow| GHA
-    GHA -->|assume role| OIDC
-    GHA -->|sync build/| S3
-    GHA -->|invalidate cache| CF
-    DEV -.->|invoke skills| CLAUDE
-    CLAUDE --> TF
-    TF -->|provision| S3
-    TF -->|provision| CF
-    TF -->|provision| OIDC
-    TF -->|manage| TFSTATE
-    CF -->|serve static assets| USER
-
-    style CLAUDE fill:#1c1c2e,stroke:#d2a8ff,color:#d2a8ff
-    style AWS fill:#1a1f2e,stroke:#e3b341,color:#e3b341`,
 	},
 	{
 		slug: 'dv-portfolio-website',
@@ -157,43 +68,5 @@ export const projects: Project[] = [
 			en: 'Built page by page with Astro and TypeScript, with English and Spanish as first-class routes rather than a bolted-on translation layer. Packaged into a container and deployed to Cloud Run, with DNS managed through Route 53. Every part of it, from the color system to this project page, was designed and implemented through an agentic Claude Code workflow — plan, build, review, repeat.',
 			es: 'Construido página por página con Astro y TypeScript, con inglés y español como rutas de primera clase en lugar de una capa de traducción añadida después. Empaquetado en un contenedor y desplegado en Cloud Run, con el DNS gestionado a través de Route 53. Cada parte de este sitio, desde el sistema de color hasta esta misma página de proyecto, fue diseñada e implementada mediante un flujo de trabajo agéntico con Claude Code — planear, construir, revisar, repetir.',
 		},
-		diagram: `flowchart TD
-    DEV["👨‍💻 Developer (local)\\nAstro app"]
-    GH["🐙 GitHub repo\\npush to main"]
-    GHA["⚙️ GitHub Actions\\nbuild Astro → build Docker image → push"]
-
-    subgraph CLAUDE ["🤖 Claude Code — Agentic Workflow"]
-        direction TB
-        TFW["tf-writer\\nTerraform gen"]
-        SEC["security-reviewer"]
-        HOOKS["🛡️ Safety Hooks\\nblock-destroy · block-secret-commit"]
-        SKILLS["Skills: /plan · /apply · /deploy · /audit"]
-    end
-
-    subgraph GCP ["☁️ GCP — Cloud Run (free tier)"]
-        AR["📦 Artifact Registry\\ncontainer image"]
-        CR["🚀 Cloud Run\\nscale-to-zero, min-instances 0\\nno Load Balancer"]
-        DM["🔐 Domain Mapping\\nfree Google-managed TLS cert"]
-    end
-
-    R53["🌐 AWS Route 53\\nDNS for the existing domain"]
-    USER["🌍 End user — browser"]
-
-    DEV -->|git push| GH
-    GH -->|trigger workflow| GHA
-    GHA -->|push image| AR
-    AR -->|pull image| CR
-    GHA -->|deploy new revision| CR
-    CR --> DM
-    DEV -.->|invoke skills/agents| CLAUDE
-    CLAUDE -.->|generates/reviews| GHA
-
-    USER -->|HTTPS request| R53
-    R53 -->|DNS record| DM
-    DM --> CR
-    CR -->|response| USER
-
-    style CLAUDE fill:#1c1c2e,stroke:#d2a8ff,color:#d2a8ff
-    style GCP fill:#1a1f2e,stroke:#4285F4,color:#4285F4`,
 	},
 ];

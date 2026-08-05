@@ -1,7 +1,11 @@
 ---
+import { Image } from 'astro:assets';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
 import { skills } from '../data/skills';
+import { experience } from '../data/experience';
 import PageHeader from './PageHeader.astro';
+import TechIcon from './TechIcon.astro';
+import photo from '../assets/photo.jpg';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -10,15 +14,125 @@ const t = useTranslations(lang);
 <PageHeader title={t('about.heading')} />
 
 <section class="container">
-	<p class="reveal bio">{t('about.bio')}</p>
+	<div class="about-row">
+		<div class="photo-card reveal">
+			<Image src={photo} alt="Diego Valdez" width={216} height={288} />
+			<div class="photo-status"><span class="dot" aria-hidden="true"></span> online</div>
+		</div>
+		<p class="reveal bio">{t('about.bio')}</p>
+	</div>
+
+	<h2 class="reveal experience-heading">{t('experience.heading')}</h2>
+	<ol class="timeline">
+		{
+			experience.map((job, i) => (
+				<li class="entry reveal" style={`--reveal-delay: ${0.1 + i * 0.1}s`}>
+					<span class="marker" aria-hidden="true" />
+					<div class="entry-head">
+						<span class="role">{job.role[lang]}</span>
+						<span class="dates">{job.dates[lang]}</span>
+					</div>
+					<div class="company">
+						{job.company} — {job.location}
+					</div>
+					<ul class="highlights">
+						{job.highlights[lang].map((h) => (
+							<li>{h}</li>
+						))}
+					</ul>
+				</li>
+			))
+		}
+	</ol>
 
 	<h2 class="reveal skills-heading">{t('skills.heading')}</h2>
 	<ul class="skills-list">
-		{skills.map((skill) => <li class="reveal">{skill}</li>)}
+		{
+			skills.map((skill) => (
+				<li class="reveal">
+					<TechIcon icon={skill.icon} />
+					{skill.name}
+				</li>
+			))
+		}
 	</ul>
 </section>
 
 <style>
+	.about-row {
+		display: flex;
+		gap: 2rem;
+		align-items: flex-start;
+		margin-bottom: 2rem;
+	}
+
+	.photo-card {
+		--gh-bg: #0d1117;
+		--gh-border: #30363d;
+
+		flex: none;
+		width: 12rem;
+		border-radius: 0.7rem;
+		overflow: hidden;
+		border: 1px solid var(--gh-border);
+		box-shadow: 0 20px 40px -18px rgba(0, 0, 0, 0.6);
+	}
+
+	/* full portrait, uncropped — the photo's own 3:4 proportions, not
+	   forced into a square */
+	.photo-card :global(img) {
+		width: 100%;
+		height: auto;
+		display: block;
+	}
+
+	.photo-status {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		background: var(--gh-bg);
+		border-top: 1px solid var(--gh-border);
+		padding: 0.45rem 0.6rem;
+		color: var(--accent-2);
+		font-size: 0.65rem;
+		font-weight: 600;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+	}
+
+	.photo-status .dot {
+		width: 0.4rem;
+		height: 0.4rem;
+		border-radius: 50%;
+		background: var(--accent-2);
+		box-shadow: 0 0 5px var(--accent-2);
+		animation: pulse 2s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.4;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.photo-status .dot {
+			animation: none;
+		}
+	}
+
+	@media (max-width: 34rem) {
+		.about-row {
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+		}
+	}
+
 	.bio {
 		/* the page background settles into the dark "Deep Space" landing
 		   tone (global.css --gradient) well before this content, on any
@@ -26,13 +140,81 @@ const t = useTranslations(lang);
 		   here, so this uses the light text-on-dark token instead */
 		color: color-mix(in srgb, var(--text-on-dark) 85%, transparent);
 		max-width: 42rem;
-		margin-bottom: 2rem;
+		margin-bottom: 0;
 	}
 
+	.experience-heading,
 	.skills-heading {
 		color: var(--text-on-dark);
 		font-size: 1.1rem;
 		margin-bottom: 1rem;
+	}
+
+	.timeline {
+		list-style: none;
+		max-width: 42rem;
+		margin-bottom: 3rem;
+	}
+
+	.entry {
+		position: relative;
+		padding: 0 0 1.75rem 1.4rem;
+		border-left: 2px solid color-mix(in srgb, var(--text-on-dark) 20%, transparent);
+	}
+
+	.entry:last-child {
+		padding-bottom: 0;
+		border-left-color: transparent;
+	}
+
+	.marker {
+		position: absolute;
+		left: -0.4rem;
+		top: 0.3rem;
+		width: 0.65rem;
+		height: 0.65rem;
+		border-radius: 50%;
+		background: var(--accent-2);
+		box-shadow: 0 0 6px var(--accent-2);
+	}
+
+	.entry-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.6rem;
+	}
+
+	.role {
+		color: var(--text-on-dark);
+		font-weight: 700;
+		font-size: 0.98rem;
+	}
+
+	.dates {
+		color: color-mix(in srgb, var(--text-on-dark) 55%, transparent);
+		font-size: 0.8rem;
+	}
+
+	.company {
+		color: color-mix(in srgb, var(--text-on-dark) 70%, transparent);
+		font-size: 0.85rem;
+		margin-top: 0.15rem;
+		margin-bottom: 0.6rem;
+	}
+
+	.highlights {
+		list-style: disc;
+		padding-left: 1.1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+
+	.highlights li {
+		color: color-mix(in srgb, var(--text-on-dark) 75%, transparent);
+		font-size: 0.88rem;
+		line-height: 1.6;
 	}
 
 	.skills-list {
@@ -43,8 +225,11 @@ const t = useTranslations(lang);
 	}
 
 	.skills-list li {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
 		background: var(--text-on-accent);
-		color: var(--accent-2);
+		color: var(--text-on-dark);
 		padding: 0.4rem 0.9rem;
 		border-radius: 999px;
 		font-size: 0.9rem;

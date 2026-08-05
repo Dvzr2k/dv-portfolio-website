@@ -41,13 +41,9 @@ const t = useTranslations(lang);
 					<span class="step-name">{t('project.architecture')}</span>
 				</div>
 				<p class="step-body">{project.architecture[lang]}</p>
-				{
-					project.diagram && (
-						<div class="diagram-wrap">
-							<pre class="mermaid">{project.diagram}</pre>
-						</div>
-					)
-				}
+				<a href={project.github} target="_blank" rel="noopener noreferrer" class="diagram-link">
+					{t('project.viewDiagram')} ↗
+				</a>
 			</div>
 
 			<div class="step reveal" style="--reveal-delay: 0.5s">
@@ -220,21 +216,20 @@ const t = useTranslations(lang);
 		color: var(--accent-1);
 	}
 
-	/* wide diagrams scroll inside their own box rather than the page —
-	   the source is copied verbatim from the project's GitHub README, so
-	   its natural width isn't tuned to any particular viewport */
-	.diagram-wrap {
-		margin: 1rem 0 0 1.75rem;
-		max-width: 42rem;
-		overflow-x: auto;
-		border: 1px solid var(--gh-border);
-		border-radius: 0.4rem;
-		padding: 1rem;
+	/* the full diagram lives in the repo's own README, not duplicated here —
+	   avoids this page silently going stale if the architecture changes and
+	   only the README gets updated */
+	.diagram-link {
+		display: inline-block;
+		margin: 0.85rem 0 0 1.75rem;
+		color: var(--accent-1);
+		font-weight: 600;
+		font-size: 0.85rem;
+		text-decoration: none;
 	}
 
-	.diagram-wrap :global(svg) {
-		display: block;
-		margin-inline: auto;
+	.diagram-link:hover {
+		text-decoration: underline;
 	}
 
 	.outcome-links {
@@ -290,36 +285,3 @@ const t = useTranslations(lang);
 		}
 	}
 </style>
-
-<script>
-	// Renders any project's real README diagram (copied verbatim into
-	// data/projects.ts) client-side, themed to match this site's dark
-	// GHA-card palette instead of GitHub's default mermaid styling. A
-	// no-op on project pages with no `.mermaid` block on them.
-	import mermaid from 'mermaid';
-
-	mermaid.initialize({
-		startOnLoad: false,
-		theme: 'base',
-		themeVariables: {
-			fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-			background: '#0d1117',
-			primaryColor: '#161b22',
-			primaryTextColor: '#c9d1d9',
-			primaryBorderColor: '#30363d',
-			lineColor: '#8b949e',
-			secondaryColor: '#161b22',
-			secondaryTextColor: '#c9d1d9',
-			secondaryBorderColor: '#30363d',
-			tertiaryColor: '#10151c',
-			tertiaryTextColor: '#c9d1d9',
-			tertiaryBorderColor: '#30363d',
-			clusterBkg: '#10151c',
-			clusterBorder: '#30363d',
-			edgeLabelBackground: '#0d1117',
-			nodeTextColor: '#c9d1d9',
-		},
-	});
-
-	mermaid.run({ querySelector: '.mermaid' });
-</script>

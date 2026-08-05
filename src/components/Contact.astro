@@ -1,28 +1,62 @@
 ---
+import * as simpleIcons from 'simple-icons';
+import linkedinSvg from '../assets/icons/linkedin.svg?raw';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
 import PageHeader from './PageHeader.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+
+const githubPath = (simpleIcons as unknown as Record<string, { path: string }>).siGithub.path;
+
+const channels = [
+	{ label: 'GitHub', handle: '@Dvzr2k', href: 'https://github.com/Dvzr2k', external: true },
+	{
+		label: 'LinkedIn',
+		handle: 'diego-valdez-rodriguez',
+		href: 'https://www.linkedin.com/in/diego-valdez-rodriguez',
+		external: true,
+	},
+	{ label: 'Email', handle: 'diegovaldezrodriguez3@gmail.com', href: 'mailto:diegovaldezrodriguez3@gmail.com', external: false },
+];
 ---
 
 <PageHeader title={t('contact.heading')} />
 
 <section class="container contact">
-	<p class="reveal">{t('contact.cta')}</p>
-	<div class="reveal contact-links">
-		<a href="https://github.com/Dvzr2k" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-			GitHub
-		</a>
-		<a
-			href="https://www.linkedin.com/in/diego-valdez-rodriguez"
-			target="_blank"
-			rel="noopener noreferrer"
-			class="btn btn-primary"
-		>
-			LinkedIn
-		</a>
-		<a href="mailto:diegovaldezrodriguez3@gmail.com" class="btn btn-on-gradient">Email</a>
+	<p class="reveal cta">{t('contact.cta')}</p>
+
+	<div class="channels-card reveal" style="--reveal-delay: 0.15s">
+		{
+			channels.map((channel, i) => (
+				<a
+					href={channel.href}
+					target={channel.external ? '_blank' : undefined}
+					rel={channel.external ? 'noopener noreferrer' : undefined}
+					class:list={['channel-row', { 'no-border': i === channels.length - 1 }]}
+				>
+					<span class="channel-icon">
+						{channel.label === 'GitHub' && (
+							<svg viewBox="0 0 24 24">
+								<path d={githubPath} fill="currentColor" />
+							</svg>
+						)}
+						{channel.label === 'LinkedIn' && <Fragment set:html={linkedinSvg} />}
+						{channel.label === 'Email' && (
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<rect x="2" y="4" width="20" height="16" rx="2" />
+								<path d="m22 7-10 6L2 7" />
+							</svg>
+						)}
+					</span>
+					<span class="channel-text">
+						<span class="channel-label">{channel.label}</span>
+						<span class="channel-handle">{channel.handle}</span>
+					</span>
+					<span class="channel-arrow" aria-hidden="true">→</span>
+				</a>
+			))
+		}
 	</div>
 </section>
 
@@ -35,10 +69,82 @@ const t = useTranslations(lang);
 		padding-block: 5rem;
 	}
 
-	.contact-links {
+	.cta {
+		margin-bottom: 2rem;
+	}
+
+	.channels-card {
+		--gh-bg: #0d1117;
+		--gh-border: #30363d;
+		--gh-heading: #c9d1d9;
+		--gh-muted: #8b949e;
+
+		max-width: 28rem;
+		margin-inline: auto;
+		background: var(--gh-bg);
+		border: 1px solid var(--gh-border);
+		border-radius: 0.6rem;
+		overflow: hidden;
+		box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
+		text-align: left;
+	}
+
+	.channel-row {
 		display: flex;
-		gap: 1rem;
-		justify-content: center;
-		margin-top: 1.5rem;
+		align-items: center;
+		gap: 0.9rem;
+		padding: 1.1rem 1.5rem;
+		border-bottom: 1px solid var(--gh-border);
+		text-decoration: none;
+		color: inherit;
+		transition: background-color 0.15s ease;
+	}
+
+	.channel-row.no-border {
+		border-bottom: none;
+	}
+
+	.channel-row:hover {
+		background: color-mix(in srgb, var(--accent-2) 8%, transparent);
+	}
+
+	.channel-icon {
+		flex: none;
+		width: 1.4rem;
+		height: 1.4rem;
+		color: var(--gh-heading);
+	}
+
+	.channel-icon svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.channel-text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		min-width: 0;
+	}
+
+	.channel-label {
+		color: var(--gh-heading);
+		font-weight: 700;
+		font-size: 0.95rem;
+	}
+
+	.channel-handle {
+		color: var(--gh-muted);
+		font-size: 0.82rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.channel-arrow {
+		margin-left: auto;
+		flex: none;
+		color: var(--accent-2);
+		font-weight: 700;
 	}
 </style>

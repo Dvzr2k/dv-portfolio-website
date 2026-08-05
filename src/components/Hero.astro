@@ -1,5 +1,7 @@
 ---
+import { Image } from 'astro:assets';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import photo from '../assets/photo.jpg';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -8,19 +10,7 @@ const t = useTranslations(lang);
 <section class="hero">
 	<div class="gha-card reveal" style="--reveal-delay: 0s">
 		<div class="gha-header">
-			<span class="gha-status-icon">
-				<svg
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="3"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-				>
-					<polyline points="20 6 9 17 4 12"></polyline>
-				</svg>
-			</span>
+			<Image src={photo} alt="Diego Valdez" width={112} height={112} class="avatar" />
 			<div>
 				<div class="gha-title">intro.yml #1 · whoami</div>
 				<div class="gha-meta">workflow_dispatch · main · 2.03s</div>
@@ -117,7 +107,7 @@ const t = useTranslations(lang);
 		--gh-heading: #c9d1d9;
 		--gh-muted: #8b949e;
 
-		width: min(46rem, 92vw);
+		width: min(58rem, 94vw);
 		border-radius: 0.6rem;
 		overflow: hidden;
 		background: var(--gh-bg);
@@ -134,22 +124,13 @@ const t = useTranslations(lang);
 		border-bottom: 1px solid var(--gh-border);
 	}
 
-	.gha-status-icon {
+	.avatar {
 		flex: none;
-		width: 1.9rem;
-		height: 1.9rem;
+		width: 4rem;
+		height: 4rem;
 		border-radius: 50%;
-		background: var(--accent-2);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		margin-top: 0.1rem;
-	}
-
-	.gha-status-icon svg {
-		width: 1.1rem;
-		height: 1.1rem;
-		stroke: var(--text-on-accent);
+		object-fit: cover;
+		border: 2px solid var(--accent-2);
 	}
 
 	.gha-title {

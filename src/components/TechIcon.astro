@@ -1,0 +1,45 @@
+---
+import * as simpleIcons from 'simple-icons';
+import awsSvg from '../assets/icons/aws.svg?raw';
+import azureSvg from '../assets/icons/azure.svg?raw';
+import type { Skill } from '../data/skills';
+
+interface Props {
+	icon: Skill['icon'];
+}
+
+const { icon } = Astro.props;
+
+const fileIcons: Record<string, string> = {
+	'aws.svg': awsSvg,
+	'azure.svg': azureSvg,
+};
+
+const iconsBySlug = simpleIcons as unknown as Record<string, { path: string }>;
+---
+
+<span class="tech-icon">
+	{
+		icon.source === 'simple-icons' ? (
+			<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+				<path d={iconsBySlug[icon.slug].path} fill={icon.hex} />
+			</svg>
+		) : (
+			<Fragment set:html={fileIcons[icon.file]} />
+		)
+	}
+</span>
+
+<style>
+	.tech-icon {
+		display: inline-flex;
+		width: 1.15rem;
+		height: 1.15rem;
+		flex: none;
+	}
+
+	.tech-icon :global(svg) {
+		width: 100%;
+		height: 100%;
+	}
+</style>
