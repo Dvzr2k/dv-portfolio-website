@@ -1,0 +1,405 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const bootSteps = [
+	'Mount infrastructure',
+	'Pull claude-code:agent',
+	'Start whoami.service',
+	'Load identity: diego-valdez',
+	'Establish secure session',
+];
+---
+
+<div class="boot" id="boot" data-boot>
+	<div class="prompt" id="bootPrompt">
+		<div class="prompt-card">
+			<div class="prompt-label">workflow</div>
+			<div class="prompt-name">intro.yml</div>
+			<button class="run-btn" id="bootRunBtn" type="button">▶ {t('intro.run')}</button>
+		</div>
+		<div class="prompt-hint">{t('intro.orEnter')}</div>
+	</div>
+
+	<div class="run-card" id="bootRunCard">
+		<div class="run-header">
+			<div>
+				<div class="run-title">intro.yml #1 · booting</div>
+				<div class="run-meta">workflow_dispatch · main · <span id="bootElapsed">0.00s</span></div>
+			</div>
+		</div>
+		<div class="run-steps" id="bootSteps">
+			{
+				bootSteps.map((name) => (
+					<div class="run-step">
+						<span class="run-icon">
+							<span class="run-spinner" aria-hidden="true" />
+							<svg
+								class="run-check"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="3"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<polyline points="20 6 9 17 4 12" />
+							</svg>
+						</span>
+						<span class="run-step-name">{name}</span>
+					</div>
+				))
+			}
+		</div>
+		<div class="run-footer" id="bootFooter"><span class="dot" aria-hidden="true"></span> All jobs passed</div>
+	</div>
+</div>
+
+<div class="skip-hint" id="bootSkipHint">{t('intro.skip')}</div>
+
+<script>
+	const STORAGE_KEY = 'introPlayed';
+	const STEP_GAP = 260;
+	const IDLE_START = 6000;
+
+	const bootEl = document.getElementById('boot');
+	const promptEl = document.getElementById('bootPrompt');
+	const runCardEl = document.getElementById('bootRunCard');
+	const stepsEl = document.getElementById('bootSteps');
+	const footerEl = document.getElementById('bootFooter');
+	const elapsedEl = document.getElementById('bootElapsed');
+	const runBtn = document.getElementById('bootRunBtn');
+	const skipHintEl = document.getElementById('bootSkipHint');
+
+	if (!bootEl || !promptEl || !runCardEl || !stepsEl || !elapsedEl || !runBtn || !skipHintEl) {
+		// markup missing for some reason — fail silently, never block the page
+	} else if (sessionStorage.getItem(STORAGE_KEY) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		bootEl.remove();
+		skipHintEl.remove();
+	} else {
+		let started = false;
+		let timeouts: ReturnType<typeof setTimeout>[] = [];
+		let rafId = 0;
+		let idleTimer: ReturnType<typeof setTimeout>;
+
+		function finishIntro() {
+			bootEl?.classList.add('hidden');
+			skipHintEl?.classList.remove('show');
+			timeouts.forEach(clearTimeout);
+			cancelAnimationFrame(rafId);
+			sessionStorage.setItem(STORAGE_KEY, '1');
+			document.removeEventListener('keydown', onKeydown);
+		}
+
+		function startBoot() {
+			if (started) return;
+			started = true;
+			clearTimeout(idleTimer);
+			promptEl!.classList.add('hidden');
+			runCardEl!.classList.add('active');
+
+			const rows = stepsEl!.querySelectorAll('.run-step');
+			const totalTime = rows.length * STEP_GAP + 150;
+			const start = performance.now();
+
+			function tick(now: number) {
+				const elapsed = now - start;
+				if (elapsed >= totalTime) {
+					elapsedEl!.textContent = `${(totalTime / 1000).toFixed(2)}s`;
+					return;
+				}
+				elapsedEl!.textContent = `${(elapsed / 1000).toFixed(2)}s`;
+				rafId = requestAnimationFrame(tick);
+			}
+			rafId = requestAnimationFrame(tick);
+
+			rows.forEach((row, i) => {
+				timeouts.push(setTimeout(() => row.classList.add('done'), (i + 1) * STEP_GAP));
+			});
+
+			timeouts.push(setTimeout(() => skipHintEl!.classList.add('show'), 400));
+			timeouts.push(setTimeout(() => runCardEl!.classList.add('finished'), totalTime));
+			timeouts.push(setTimeout(finishIntro, totalTime + 700));
+		}
+
+		function onKeydown() {
+			if (!started) startBoot();
+			else finishIntro();
+		}
+
+		runBtn.addEventListener('click', startBoot);
+		document.addEventListener('keydown', onKeydown);
+		runCardEl.addEventListener('click', () => {
+			if (started) finishIntro();
+		});
+
+		idleTimer = setTimeout(startBoot, IDLE_START);
+	}
+</script>
+
+<style>
+	.boot {
+		position: fixed;
+		inset: 0;
+		background: #0a1620;
+		z-index: 100;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1.5rem;
+		transition:
+			opacity 0.5s ease,
+			visibility 0.5s ease;
+	}
+
+	.boot.hidden {
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+	.prompt {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.25rem;
+		opacity: 1;
+		transition:
+			opacity 0.35s ease,
+			transform 0.35s ease;
+	}
+
+	.prompt.hidden {
+		opacity: 0;
+		transform: scale(0.96);
+		pointer-events: none;
+		position: absolute;
+	}
+
+	.prompt-card {
+		--gh-bg: #0d1117;
+		--gh-border: #30363d;
+		--gh-heading: #c9d1d9;
+		--gh-muted: #8b949e;
+
+		background: var(--gh-bg);
+		border: 1px solid var(--gh-border);
+		border-radius: 0.6rem;
+		padding: 1.6rem 2rem;
+		text-align: center;
+		box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
+	}
+
+	.prompt-label {
+		color: var(--gh-muted);
+		font-size: 0.72rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		margin-bottom: 0.6rem;
+	}
+
+	.prompt-name {
+		color: var(--gh-heading);
+		font-weight: 700;
+		font-size: 1.05rem;
+		margin-bottom: 1.1rem;
+	}
+
+	.run-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-family: inherit;
+		font-size: 0.85rem;
+		font-weight: 700;
+		background: var(--accent-2);
+		color: var(--text-on-accent);
+		border: none;
+		border-radius: 0.4rem;
+		padding: 0.7rem 1.4rem;
+		cursor: pointer;
+		box-shadow: 0 0 24px color-mix(in srgb, var(--accent-2) 45%, transparent);
+		transition:
+			transform 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+
+	.run-btn:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 0 32px color-mix(in srgb, var(--accent-2) 65%, transparent);
+	}
+
+	.prompt-hint {
+		color: color-mix(in srgb, var(--text-on-dark) 45%, transparent);
+		font-size: 0.68rem;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+	}
+
+	.run-card {
+		--gh-bg: #0d1117;
+		--gh-border: #30363d;
+		--gh-heading: #c9d1d9;
+		--gh-muted: #8b949e;
+
+		width: min(30rem, 92vw);
+		border-radius: 0.6rem;
+		overflow: hidden;
+		background: var(--gh-bg);
+		border: 1px solid var(--gh-border);
+		box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+		position: absolute;
+		opacity: 0;
+		transform: scale(0.97);
+		transition:
+			opacity 0.3s ease,
+			transform 0.3s ease;
+		pointer-events: none;
+	}
+
+	.run-card.active {
+		opacity: 1;
+		transform: scale(1);
+		pointer-events: auto;
+	}
+
+	.run-header {
+		padding: 1.1rem 1.4rem;
+		border-bottom: 1px solid var(--gh-border);
+	}
+
+	.run-title {
+		color: var(--gh-heading);
+		font-weight: 700;
+		font-size: 0.95rem;
+	}
+
+	.run-meta {
+		color: var(--gh-muted);
+		font-size: 0.75rem;
+		margin-top: 0.15rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.run-steps {
+		padding: 0.4rem 0;
+	}
+
+	.run-step {
+		padding: 0.7rem 1.4rem;
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.run-icon {
+		position: relative;
+		flex: none;
+		width: 1.05rem;
+		height: 1.05rem;
+	}
+
+	.run-spinner {
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		border: 2px solid color-mix(in srgb, var(--gh-muted) 35%, transparent);
+		border-top-color: var(--accent-1);
+		animation: boot-spin 0.7s linear infinite;
+		opacity: 1;
+		transition: opacity 0.2s ease;
+	}
+
+	@keyframes boot-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.run-check {
+		position: absolute;
+		inset: 0;
+		color: var(--accent-2);
+		opacity: 0;
+		transform: scale(0.6);
+		transition:
+			opacity 0.25s ease,
+			transform 0.25s ease;
+	}
+
+	.run-step.done .run-spinner {
+		opacity: 0;
+	}
+
+	.run-step.done .run-check {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	.run-step-name {
+		color: var(--gh-muted);
+		font-size: 0.85rem;
+		transition: color 0.25s ease;
+	}
+
+	.run-step.done .run-step-name {
+		color: var(--gh-heading);
+	}
+
+	.run-footer {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.85rem 1.4rem;
+		border-top: 1px solid var(--gh-border);
+		color: var(--accent-2);
+		font-size: 0.85rem;
+		font-weight: 700;
+		opacity: 0;
+		transform: translateY(0.3rem);
+		transition:
+			opacity 0.4s ease,
+			transform 0.4s ease;
+	}
+
+	.run-card.finished .run-footer {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.run-footer .dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		background: var(--accent-2);
+		box-shadow: 0 0 8px var(--accent-2);
+	}
+
+	.skip-hint {
+		position: fixed;
+		bottom: 1.5rem;
+		left: 50%;
+		transform: translateX(-50%);
+		color: color-mix(in srgb, var(--text-on-dark) 40%, transparent);
+		font-size: 0.7rem;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+		opacity: 0;
+		transition: opacity 0.4s ease;
+		z-index: 101;
+		pointer-events: none;
+	}
+
+	.skip-hint.show {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.run-spinner {
+			animation: none;
+		}
+	}
+</style>

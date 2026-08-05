@@ -8,52 +8,58 @@ const t = useTranslations(lang);
 ---
 
 <section class="hero">
-	<div class="gha-card reveal" style="--reveal-delay: 0s">
+	<div class="gha-card reveal" style="--reveal-delay: 0s" data-pipeline>
 		<div class="gha-header">
 			<Image src={photo} alt="Diego Valdez" width={112} height={112} class="avatar" />
 			<div>
 				<div class="gha-title">intro.yml #1 · whoami</div>
-				<div class="gha-meta">workflow_dispatch · main · 2.03s</div>
+				<div class="gha-meta">workflow_dispatch · main · <span data-elapsed>0.00s</span></div>
 			</div>
 		</div>
 
 		<div class="gha-steps">
-			<div class="gha-step reveal" style="--reveal-delay: 0.3s">
+			<div class="gha-step pending" data-step="1">
 				<div class="gha-step-head">
 					<span class="gha-chevron" aria-hidden="true">▾</span>
-					<svg
-						class="gha-check"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="3"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						aria-hidden="true"
-					>
-						<polyline points="20 6 9 17 4 12"></polyline>
-					</svg>
+					<span class="gha-icon">
+						<span class="gha-spinner" aria-hidden="true"></span>
+						<svg
+							class="gha-check"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="3"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
+							<polyline points="20 6 9 17 4 12"></polyline>
+						</svg>
+					</span>
 					<span class="gha-step-name">Run whoami</span>
 					<span class="gha-step-time">0.02s</span>
 				</div>
 				<div class="gha-step-log">Diego Valdez — {t('hero.headline')}</div>
 			</div>
 
-			<div class="gha-step reveal" style="--reveal-delay: 0.55s">
+			<div class="gha-step pending" data-step="2">
 				<div class="gha-step-head">
 					<span class="gha-chevron" aria-hidden="true">▾</span>
-					<svg
-						class="gha-check"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="3"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						aria-hidden="true"
-					>
-						<polyline points="20 6 9 17 4 12"></polyline>
-					</svg>
+					<span class="gha-icon">
+						<span class="gha-spinner" aria-hidden="true"></span>
+						<svg
+							class="gha-check"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="3"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
+							<polyline points="20 6 9 17 4 12"></polyline>
+						</svg>
+					</span>
 					<span class="gha-step-name">Run cat motd</span>
 					<span class="gha-step-time">0.01s</span>
 				</div>
@@ -61,7 +67,7 @@ const t = useTranslations(lang);
 			</div>
 		</div>
 
-		<div class="gha-footer reveal" style="--reveal-delay: 0.85s">
+		<div class="gha-footer">
 			<span class="pulse" aria-hidden="true"></span> All jobs passed
 		</div>
 	</div>
@@ -80,6 +86,56 @@ const t = useTranslations(lang);
 		</svg>
 	</a>
 </section>
+
+<script>
+	// Simulates the pipeline actually running on load: steps resolve from a
+	// spinner to a checkmark in sequence, with a live-ticking elapsed timer
+	// in the header, ending with the footer flourish once both are done.
+	// Purely cosmetic/scripted (not a real process), so the timeline is a
+	// fixed schedule rather than measuring anything real.
+	const STEP_TIMES = [520, 1080]; // ms — when each step resolves
+	const FOOTER_DELAY = 1080;
+
+	function runPipeline(card: HTMLElement) {
+		const elapsedEl = card.querySelector<HTMLElement>('[data-elapsed]');
+		const steps = card.querySelectorAll<HTMLElement>('[data-step]');
+
+		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		if (reducedMotion) {
+			steps.forEach((step) => step.classList.replace('pending', 'done'));
+			card.classList.add('finished');
+			if (elapsedEl) elapsedEl.textContent = `${(FOOTER_DELAY / 1000).toFixed(2)}s`;
+			return;
+		}
+
+		const start = performance.now();
+		let frame: number;
+
+		function tick(now: number) {
+			if (!elapsedEl) return;
+			const elapsed = now - start;
+			if (elapsed >= FOOTER_DELAY) {
+				elapsedEl.textContent = `${(FOOTER_DELAY / 1000).toFixed(2)}s`;
+				return;
+			}
+			elapsedEl.textContent = `${(elapsed / 1000).toFixed(2)}s`;
+			frame = requestAnimationFrame(tick);
+		}
+		frame = requestAnimationFrame(tick);
+
+		steps.forEach((step, i) => {
+			setTimeout(() => step.classList.replace('pending', 'done'), STEP_TIMES[i]);
+		});
+
+		setTimeout(() => {
+			cancelAnimationFrame(frame);
+			card.classList.add('finished');
+		}, FOOTER_DELAY);
+	}
+
+	document.querySelectorAll<HTMLElement>('[data-pipeline]').forEach(runPipeline);
+</script>
 
 <style>
 	.hero {
@@ -143,6 +199,7 @@ const t = useTranslations(lang);
 		color: var(--gh-muted);
 		font-size: 0.88rem;
 		margin-top: 0.25rem;
+		font-variant-numeric: tabular-nums;
 	}
 
 	.gha-steps {
@@ -165,11 +222,48 @@ const t = useTranslations(lang);
 		width: 0.9rem;
 	}
 
-	.gha-check {
-		color: var(--accent-2);
+	.gha-icon {
+		position: relative;
 		flex: none;
 		width: 1.15rem;
 		height: 1.15rem;
+	}
+
+	.gha-spinner {
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		border: 2px solid color-mix(in srgb, var(--gh-muted) 35%, transparent);
+		border-top-color: var(--accent-1);
+		animation: spin 0.7s linear infinite;
+		opacity: 1;
+		transition: opacity 0.2s ease;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.gha-check {
+		position: absolute;
+		inset: 0;
+		color: var(--accent-2);
+		opacity: 0;
+		transform: scale(0.6);
+		transition:
+			opacity 0.25s ease,
+			transform 0.25s ease;
+	}
+
+	.gha-step.done .gha-spinner {
+		opacity: 0;
+	}
+
+	.gha-step.done .gha-check {
+		opacity: 1;
+		transform: scale(1);
 	}
 
 	.gha-step-name {
@@ -181,6 +275,12 @@ const t = useTranslations(lang);
 		margin-left: auto;
 		color: var(--gh-muted);
 		font-size: 0.85rem;
+		opacity: 0;
+		transition: opacity 0.3s ease;
+	}
+
+	.gha-step.done .gha-step-time {
+		opacity: 1;
 	}
 
 	.gha-step-log {
@@ -190,6 +290,16 @@ const t = useTranslations(lang);
 		color: var(--gh-muted);
 		font-size: 0.95rem;
 		line-height: 1.65;
+		opacity: 0;
+		transform: translateY(0.4rem);
+		transition:
+			opacity 0.35s ease,
+			transform 0.35s ease;
+	}
+
+	.gha-step.done .gha-step-log {
+		opacity: 1;
+		transform: translateY(0);
 	}
 
 	.gha-footer {
@@ -201,6 +311,16 @@ const t = useTranslations(lang);
 		color: var(--accent-2);
 		font-size: 0.98rem;
 		font-weight: 600;
+		opacity: 0;
+		transform: translateY(0.3rem);
+		transition:
+			opacity 0.4s ease,
+			transform 0.4s ease;
+	}
+
+	.gha-card.finished .gha-footer {
+		opacity: 1;
+		transform: translateY(0);
 	}
 
 	.gha-footer .pulse {
@@ -225,6 +345,16 @@ const t = useTranslations(lang);
 	@media (prefers-reduced-motion: reduce) {
 		.gha-footer .pulse {
 			animation: none;
+		}
+
+		.gha-spinner {
+			animation: none;
+		}
+
+		.gha-step-time,
+		.gha-step-log,
+		.gha-footer {
+			transition: none;
 		}
 	}
 

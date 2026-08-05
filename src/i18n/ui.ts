@@ -10,6 +10,9 @@ export const ui = {
 		'nav.about': 'About',
 		'nav.projects': 'Projects',
 		'nav.contact': 'Contact',
+		'intro.run': 'Run workflow',
+		'intro.orEnter': 'or press Enter',
+		'intro.skip': 'click or press any key to skip',
 		'hero.headline': 'DevOps and AgileOps Specialist',
 		'hero.tagline':
 			'Always ready to build infrastructure and automate workflows — and always up for a conversation about tech.',
@@ -39,6 +42,9 @@ export const ui = {
 		'nav.about': 'Sobre mí',
 		'nav.projects': 'Proyectos',
 		'nav.contact': 'Contacto',
+		'intro.run': 'Ejecutar workflow',
+		'intro.orEnter': 'o presiona Enter',
+		'intro.skip': 'haz clic o presiona cualquier tecla para saltar',
 		'hero.headline': 'Especialista DevOps y AgileOps',
 		'hero.tagline':
 			'Siempre listo para construir infraestructura y automatizar flujos de trabajo — y siempre disponible para hablar de tecnología.',
