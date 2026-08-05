@@ -22,7 +22,7 @@ if echo "$COMMAND" | grep -qE 'git\s+(add|commit)'; then
 
   # 'git add .' / '-A' / '--all' can sweep in secret files without a human
   # actually looking at what's being staged.
-  if echo "$COMMAND" | grep -qE 'git\s+add\s+(-A|--all|\.)'; then
+  if echo "$COMMAND" | grep -qE 'git\s+add\s+(-A|--all|\.(\s|$))'; then
     echo "BLOCKED: 'git add .' / 'git add -A' can accidentally stage secret files."
     echo ""
     echo "Add files explicitly by name instead, e.g.:"

@@ -16,3 +16,11 @@ node_modules/
 
 # editor
 .idea/
+
+# terraform — local working files, never committed; .terraform.lock.hcl
+# IS committed (pins provider versions) so it's deliberately not listed here
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/plan.out
+terraform/*.tfvars
