@@ -37,13 +37,29 @@ Default, if that file hasn't been filled in yet:
 
 ## Cloud Best Practices
 
-<FILL IN: this project's actual cloud provider and services. Examples below
-are from a prior AWS/S3/CloudFront project this template is distilled from
-— replace with what this project actually uses, or delete if not AWS:>
-- Storage: private by default, block public access, versioning enabled on state buckets
-- CDN: origin access control (not legacy OAI), redirect HTTP to HTTPS, modern TLS minimum
-- IAM: least privilege, no wildcard actions/resources, prefer conditions over broad grants
-- Reference account/region via data sources (`aws_caller_identity`, `aws_region`) instead of hardcoding
+This project runs on GCP (Cloud Run, Artifact Registry, Workload Identity
+Federation) — no AWS, no Kubernetes.
+
+- Cloud Run: `min_instance_count = 0` (scale to zero, this is a low-traffic
+  personal site — an always-on instance would be pure waste); `cpu_idle =
+  true` (billed only during actual request handling, not for however long
+  an instance stays warm); `deletion_protection = false` is intentional
+  here, not an oversight — this is a personal project a human iterates on
+  directly, not a shared production system
+- The `image` field on `google_cloud_run_v2_service` is deliberately
+  excluded from drift detection (`lifecycle.ignore_changes`) — GitHub
+  Actions deploys new revisions directly via `deploy-cloudrun`, so
+  Terraform manages the service's shape, not which image is currently live
+- Artifact Registry: no public read access needed, this is a private image repo
+- IAM: least privilege — the GitHub Actions deploy service account gets
+  exactly three roles (`run.admin`, `artifactregistry.writer`,
+  `iam.serviceAccountUser`), nothing broader
+- Auth: Workload Identity Federation for CI, never a downloaded service
+  account JSON key — see `google_iam_workload_identity_pool_provider`'s
+  `attribute_condition`, which scopes trust to this exact GitHub repo
+- Reference project ID via the `project_id` variable, not hardcoded inline —
+  this is a single-project setup, so `data "google_project"` lookups
+  weren't necessary, but avoid literal project ID strings in new resources
 
 ## Before Finishing
 

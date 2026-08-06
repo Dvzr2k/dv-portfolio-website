@@ -19,10 +19,7 @@ if [ -z "$COMMAND" ]; then
   exit 0
 fi
 
-# <FILL IN>: add this project's actual code directories — whatever holds
-# infra-as-code, CI config, or anything else expensive to lose locally.
-# Examples from prior projects: terraform, k8s, helm, helm-values, .github
-PROTECTED_DIRS=".claude"
+PROTECTED_DIRS=".claude terraform .github src"
 
 if echo "$COMMAND" | grep -qE 'rm\s+(-[a-zA-Z]*[rf][a-zA-Z]*\s+|--recursive|--force)'; then
   for dir in $PROTECTED_DIRS; do

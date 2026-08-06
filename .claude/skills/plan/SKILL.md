@@ -3,16 +3,16 @@
 Preview a change before applying it — the "look before you leap" half of
 the plan → review → apply pattern. Never modifies real state.
 
-<FILL IN: replace the steps below with this project's actual preview
-command. Examples from prior projects this template is distilled from:
-Terraform → `terraform plan -out plan.out`; Kubernetes → `kubectl diff -f
-<file>` or `kubectl apply --dry-run=server -f <file>`; Pulumi → `pulumi
-preview`; a database migration tool → its `--dry-run`/`plan` equivalent.>
+This project's only IaC tool is Terraform, and there's one environment —
+so `target` is unused in practice; the command is always:
+
+```
+cd terraform && terraform plan -out plan.out
+```
 
 ## Arguments
 
-- `target` — <FILL IN: e.g. environment name (`dev`/`prod`), or a specific
-  file/module path>
+- `target` — not used by this project (single environment, single `terraform/` root). Kept for template compatibility, ignore it.
 
 ## Steps
 

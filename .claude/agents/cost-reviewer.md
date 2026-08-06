@@ -13,15 +13,23 @@ READ-ONLY — you report estimates and recommendations, you do not modify code.
 
 ## Review Scope
 
-<FILL IN: list this project's actual metered resources. Examples from prior
-projects this template is distilled from — delete what doesn't apply, add
-what's missing:>
+This project's actual metered surface is small — a static site on Cloud
+Run. Not applicable and should not be flagged as "missing": a database,
+a load balancer, NAT gateways, Kubernetes.
 
-- Compute (VM/container instance hours, control-plane fees)
-- Database (instance hours, storage, backups, data transfer)
-- Storage (object storage, block storage/volumes)
-- Networking (load balancers per-hour + usage, NAT gateways, data transfer)
-- Managed services (secrets manager, DNS, logging/monitoring ingestion)
+- **Cloud Run** — request count, vCPU-seconds, GB-seconds of memory. At
+  this site's realistic traffic (a personal portfolio, not a product),
+  this should land well within Cloud Run's permanent free tier (2M
+  requests/mo, 180k vCPU-seconds/mo, 360k GB-seconds/mo) — flag it as a
+  real cost concern only if usage is trending toward those limits, not
+  preemptively
+- **Artifact Registry** — image storage (first 0.5GB/region free, then
+  ~$0.10/GB/mo). Worth checking periodically that old/unused image tags
+  aren't accumulating indefinitely and pushing past the free tier
+- **Cloud Storage** — the Terraform state bucket. Trivially small (a
+  single state file), not a real cost driver, don't spend review time here
+- **DNS** — Route 53 hosted zone (a flat small monthly fee, outside GCP
+  billing entirely) and Cloud Run's own domain mapping (free, Google-managed cert)
 
 ## Output Format
 
@@ -49,10 +57,18 @@ what's missing:>
 
 ## Rules of Thumb
 
-<FILL IN: this project's known cost-saving decisions and why, so the agent
-doesn't flag an intentional choice as a "finding." Example: "No NAT Gateway —
-intentional, all resources in public subnets with security groups as the
-access-control boundary instead (see ADR-000X).">
+Real, already-made decisions — don't re-flag these as findings:
+
+- **No Load Balancer** — a GCP HTTPS Load Balancer bills a flat hourly rate
+  for the forwarding rule regardless of traffic (~$18-25/mo minimum), which
+  would dwarf everything else in this stack. Cloud Run's own domain mapping
+  gives a custom domain + managed TLS cert without one.
+- **`min_instance_count = 0`** — scale-to-zero when idle, intentional for a
+  low-traffic personal site.
+- **`cpu_idle = true`** — billed only during actual request handling, not
+  for however long an instance stays warm between requests.
+- **No database, no Kubernetes, no NAT gateway** — this is a static site;
+  none of these would add value, only cost.
 
 ## Memory
 

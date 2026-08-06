@@ -8,8 +8,8 @@
 # How: Checks common apply-type commands across IaC tools for a preceding
 #      plan/dry-run indicator. Exits 1 (warn, ask user) if missing, 0 if a
 #      plan/dry-run marker is present or the command isn't apply-type.
-# <FILL IN>: this covers Terraform/Terragrunt/Pulumi/kubectl generically —
-# add this project's actual deploy command if it's something else entirely.
+# This project's only IaC tool is Terraform (no Pulumi, no Kubernetes) —
+# the Pulumi/kubectl blocks from the template were removed as not applicable.
 
 set -euo pipefail
 
@@ -34,25 +34,6 @@ if echo "$COMMAND" | grep -qE '(terraform|terragrunt)\s+apply'; then
   fi
   echo "WARNING: Running 'apply' without a saved plan file."
   echo "Recommended: terraform plan -out plan.out  →  review  →  terraform apply plan.out"
-  exit 1
-fi
-
-# --- Pulumi ---
-if echo "$COMMAND" | grep -qE 'pulumi\s+up' && echo "$COMMAND" | grep -qE '\-\-yes|\-y\b'; then
-  echo "WARNING: 'pulumi up --yes' skips the interactive review of the diff."
-  echo "Recommended: run 'pulumi preview' first, review it, then 'pulumi up' without --yes."
-  exit 1
-fi
-
-# --- kubectl apply against a PROD-like namespace with no dry-run first ---
-# Deliberately scoped to prod only — warning on every routine dev apply
-# would fire constantly and train the user to ignore this hook entirely.
-# <FILL IN>: replace 'prod' with this project's actual prod namespace name.
-if echo "$COMMAND" | grep -qE 'kubectl\s+apply' \
-   && echo "$COMMAND" | grep -qE '(-n|--namespace)[= ]?.*prod' \
-   && ! echo "$COMMAND" | grep -qE '\-\-dry-run'; then
-  echo "WARNING: Applying directly to a prod-like namespace with no dry-run first."
-  echo "Recommended: kubectl apply --dry-run=client -f ... first, review the diff, then apply for real."
   exit 1
 fi
 

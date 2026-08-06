@@ -3,13 +3,15 @@
 Apply a previously saved plan from `/plan`. Never applies without one, and
 never auto-approves.
 
-<FILL IN: replace with this project's actual apply command, e.g.
-`terraform apply plan.out`, `kubectl apply -f <file>` (after a prior
-`/plan` diff was reviewed), `pulumi up`.>
+```
+cd terraform && terraform apply plan.out
+```
+
+Never `-auto-approve` — always the saved plan file from `/plan`, reviewed first.
 
 ## Arguments
 
-- `target` — <FILL IN: matching `/plan`'s target argument>
+- `target` — not used by this project (single environment, single `terraform/` root). Kept for template compatibility, ignore it.
 
 ## Steps
 

@@ -6,9 +6,9 @@
 #      subtle errors that only a validator/linter catches. A tip right
 #      after the edit catches it before it reaches plan/apply/deploy.
 # How: Matches the edited file path against known patterns, prints a tip.
-# <FILL IN>: delete the blocks for tools this project doesn't use, add
-# blocks for ones it does (package.json → npm run lint, *.tf → terraform
-# validate, Dockerfile → hadolint, etc.)
+# This project has no Kubernetes/Helm, so those template blocks were
+# removed — what's left below is what this repo actually uses: Terraform,
+# the Dockerfile, the GitHub Actions workflow, and package.json.
 
 set -euo pipefail
 
@@ -22,14 +22,6 @@ fi
 if echo "$FILE_PATH" | grep -qE '\.tf$'; then
   TF_DIR=$(dirname "$FILE_PATH")
   echo "Tip: edited a Terraform file. Run 'terraform validate' and 'terraform fmt -check' in ${TF_DIR}/."
-fi
-
-if echo "$FILE_PATH" | grep -qE '\.(yaml|yml)$' && echo "$FILE_PATH" | grep -qiE 'k8s|kubernetes|manifests?/'; then
-  echo "Tip: edited a K8s manifest. Validate with: kubectl apply --dry-run=client -f ${FILE_PATH}"
-fi
-
-if echo "$FILE_PATH" | grep -qiE 'helm/.*\.(yaml|yml|tpl)$'; then
-  echo "Tip: edited a Helm file. Validate with: helm lint <chart-dir> && helm template <chart-dir>"
 fi
 
 if echo "$FILE_PATH" | grep -qE '\.github/workflows/.*\.(yaml|yml)$'; then

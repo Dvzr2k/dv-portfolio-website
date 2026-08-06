@@ -1,80 +1,128 @@
 # CLAUDE.md
 
-This file gives Claude Code full context on this repository. Fill in every
-`<PLACEHOLDER>` before starting real work — an unfilled CLAUDE.md is worse
-than none, since Claude will otherwise guess at conventions instead of
-following real ones.
+This file gives Claude Code full context on this repository.
 
 ## Project Overview
 
-<ONE PARAGRAPH: what this project is, what it does, who it's for.>
+Diego Valdez's personal portfolio — a bilingual (English/Spanish) Astro
+site styled entirely around a DevOps/GitHub-Actions visual identity (a
+"live-running pipeline" hero, dark GHA-card project pages, a terminal-style
+boot intro). Built statically, deployed to Google Cloud Run via Terraform
+and a GitHub Actions CI/CD pipeline, with DNS on AWS Route 53. The site is
+itself a demonstration piece — containers, IaC, and a real (if
+right-sized) CI/CD pipeline are the point, not just the cheapest way to
+host a static page. Live at https://app-valdezr.link.
 
 ## Directory Layout
 
 ```
-<PASTE A REAL TREE OF THE REPO HERE — keep it updated as structure changes.
-This is the single most useful section for orienting a fresh session; a
-stale tree actively misleads.>
+.
+├── src/
+│   ├── components/       # Astro components — Hero, Header, Footer, ProjectCard,
+│   │                      #   ProjectDetail, BootIntro, About, Contact, TechIcon, etc.
+│   ├── pages/             # file-based routing — index/about/contact/projects at
+│   │                      #   the root (English), mirrored under pages/es/ (Spanish);
+│   │                      #   pages/projects/[slug].astro is a dynamic per-project route
+│   ├── data/              # projects.ts, skills.ts, experience.ts — real content,
+│   │                      #   not hardcoded into components
+│   ├── i18n/               # ui.ts (translation strings), utils.ts (lang/localizePath helpers)
+│   ├── layouts/           # BaseLayout.astro — <head>, OG/Twitter meta, global <script>
+│   ├── styles/            # global.css — design tokens, the body gradient, JetBrains Mono @font-face
+│   └── assets/            # photo.jpg, self-hosted brand icon SVGs (icons/ — AWS/Azure/LinkedIn,
+│                           #   pulled from devicon since simple-icons dropped those brands)
+├── public/                # static passthrough — favicon, self-hosted font file, og-image.png
+├── terraform/              # GCP infra — flat, single environment (see .claude/rules/terraform.md)
+├── .github/workflows/      # deploy.yml — build → artifact → deploy, 3 separate jobs
+├── Dockerfile              # packages the pre-built dist/ into a container (build happens
+│                           #   in the pipeline, not inside Docker — see terraform/main.tf comments)
+├── .claude/                # hooks, agents, skills, rules — see below
+└── README.md               # architecture diagram + why-these-choices reasoning
 ```
 
 ## Tech Stack
 
 | Layer | Tool | Notes |
 |-------|------|-------|
-| <e.g. Language/Runtime> | <e.g. Node 20 / Python 3.12 / Go 1.22> | |
-| <e.g. IaC> | <e.g. Terraform, Pulumi, CDK, none> | |
-| <e.g. Cloud/Hosting> | <e.g. AWS, GCP, Vercel, self-hosted> | |
-| <e.g. CI/CD> | <e.g. GitHub Actions> | |
-| <e.g. Database> | | |
+| Framework | Astro (static output) | No SSR/Node adapter — every route is a pre-built HTML file |
+| Language | TypeScript | |
+| Styling | Plain CSS, component-scoped | No framework (no Tailwind/etc.) |
+| Typography | JetBrains Mono, self-hosted | Single family for everything — see global.css comments |
+| Container | Docker | Packages already-built `dist/`, doesn't build inside the image |
+| Hosting | Google Cloud Run | Scale-to-zero, `cpu_idle: true` |
+| Image registry | Google Artifact Registry | |
+| IaC | Terraform | Single environment, flat `terraform/` root, GCS remote state |
+| CI/CD | GitHub Actions | 3 jobs: build / artifact / deploy |
+| Deploy auth | Workload Identity Federation | Keyless — no stored GCP key anywhere |
+| DNS | AWS Route 53 | `app-valdezr.link`, managed outside GCP |
 
 ## Conventions
 
-<Naming conventions, formatting rules, where tests live, commit message
-style, branch naming — whatever is real and non-obvious. Don't restate
-what a linter already enforces; write down the things a linter can't
-check, like "resource names use {project}-{env}-{resource}" or "every
-new endpoint needs an integration test in tests/api/".>
+- **`git add` — always explicit file names, never `-A`/`--all`/`.`** —
+  enforced by `block-secret-commit.sh`; the hook will reject a bulk add
+  and tell you to name files explicitly.
+- **No `Co-Authored-By` trailer in commits** — explicit preference, stated
+  directly by the project owner.
+- **Terraform: always plan → review → apply a saved file** — `terraform
+  plan -out plan.out`, review it, then `terraform apply plan.out`. Never
+  `-auto-approve`. `warn-risky-action.sh` enforces this.
+- **i18n keys**: `section.key` (e.g. `project.viewRepo`, `hero.tagline`).
+  Content strings get translated; terminal/chrome text that's meant to
+  read as real system output (`workflow_dispatch`, `Run whoami`, project
+  card status labels like `deployed`/`shipped`) stays English-only in both
+  locales, matching how a real CLI/CI tool would actually behave.
+- **The dark GHA-card palette (`#0d1117`/`#30363d`/etc.) is redefined as
+  local CSS custom properties inside each component** that uses it (Hero,
+  ProjectCard, ProjectDetail, Contact, BootIntro) rather than promoted to
+  global tokens — an established repeated pattern, not duplication by accident.
+- **Reveal-on-scroll**: the `.reveal` class + a single shared
+  `IntersectionObserver` in `BaseLayout.astro`'s `<script>` — components
+  opt in by adding the class and a `--reveal-delay` custom property, not by
+  writing their own observer.
+- Self-hosted assets only — no font/icon CDN links anywhere (fonts, icons,
+  and the OG image are all committed into the repo or generated at build time).
 
 ## Security Rules (non-negotiable)
 
-<List the hard constraints for this project specifically. Examples from
-two real projects this template is distilled from:
-- No secrets in code — use a secrets manager / vault, never .env in git
-- No public storage buckets — block public access by default
-- Least-privilege IAM/roles — no wildcard actions or resources
-- Encryption at rest and in transit by default
-- No destructive commands without a saved plan/dry-run reviewed first
-Delete the ones that don't apply, add ones that do. A short real list
-beats a long generic one nobody reads.>
+- No secrets in code, ever — this project has none to begin with, since
+  deploy auth is Workload Identity Federation, not a stored service
+  account key
+- No wildcard IAM — the deploy service account has exactly three scoped
+  roles (`run.admin`, `artifactregistry.writer`, `iam.serviceAccountUser`)
+- Public access is scoped to exactly one resource on purpose: Cloud Run's
+  `roles/run.invoker` for `allUsers` — this is a public portfolio site.
+  Nothing else (Artifact Registry, the Terraform state bucket) should ever
+  be public.
+- HTTPS enforced everywhere via Cloud Run's Google-managed certificate
+- No destructive commands without a saved Terraform plan reviewed first
 
 ## Environments
 
-<If this project has multiple environments (dev/staging/prod), a table
-here of what differs between them (replicas, approval gates, resource
-sizes, sync/deploy policy) is one of the highest-value sections in this
-file — reference it constantly instead of re-deriving it each time.>
-
-|  | Dev | Prod |
-|--|-----|------|
-| <e.g. Deploy policy> | <e.g. auto> | <e.g. manual approval> |
+Single environment — no dev/staging/prod split. There is exactly one GCP
+project (`dv-portfolio-website`), one Cloud Run service, one domain. If
+this project ever needs more than one environment, restructure
+`terraform/` into `terraform/environments/{env}/` and update
+`.claude/rules/terraform.md` accordingly — don't bolt a second environment
+onto the current flat layout.
 
 ## MCP Servers (`.mcp.json`)
-
-<List what's actually enabled and why — not every option that exists.
-`context7` ships by default (library/framework docs, no credentials
-needed). Add anything else this project actually relies on, e.g.:>
 
 | Server | Purpose |
 |--------|---------|
 | `context7` | Up-to-date library/framework documentation |
-| <FILL IN or delete> | |
+
+No GCP or Terraform MCP server is configured — direct `gcloud`/`terraform`
+CLI access (both installed locally) covers everything needed, and is more
+capable than a wrapped MCP tool would be for this project's size.
 
 ## Workflow Commands
 
 ```bash
-npm run dev      # start the Astro dev server
-npm run build    # production build → dist/
-npm run preview  # preview the production build locally
+npm run dev       # start the Astro dev server
+npm run build     # production build → dist/
+npm run preview   # preview the production build locally
+
+cd terraform && terraform plan -out plan.out   # preview infra changes
+cd terraform && terraform apply plan.out       # apply a reviewed plan — never -auto-approve
 ```
 
 When starting the dev server in this workflow, use background mode so the
@@ -89,7 +137,6 @@ Manage it with `astro dev stop`, `astro dev status`, `astro dev logs`.
 Astro docs, consult before working on related tasks:
 - [Routing / dynamic routes / middleware](https://docs.astro.build/en/guides/routing/)
 - [Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Framework components (React/Vue/Svelte)](https://docs.astro.build/en/guides/framework-components/)
 - [Content collections](https://docs.astro.build/en/guides/content-collections/)
 - [Styling](https://docs.astro.build/en/guides/styling/)
 
@@ -97,47 +144,42 @@ Astro docs, consult before working on related tasks:
 
 | Hook | Type | What it catches |
 |------|------|------------------|
-| `block-prompt-intent.sh` | Block | Clearly destructive intent in the prompt itself ("delete everything"), before any tool call is attempted |
-| `block-destructive-commands.sh` | Block | Irreversible commands (destroy, force-push, drop table) run via Bash |
-| `block-mcp-destroy.sh` | Block | Same 'destroy' operations, issued through an MCP tool call instead of Bash |
-| `block-rm-critical-dirs.sh` | Block | `rm -rf` targeting this project's own code directories |
-| `block-secret-commit.sh` | Block | Committing `.env`, `.pem`, `.key`, or other likely-secret files |
-| `warn-risky-action.sh` | Warn | Running an apply/deploy-type command with no preceding plan/dry-run in this session |
-| `suggest-validation.sh` | Info | Suggests running lint/validate/test after editing config or infra files |
-| `log-deploy-activity.sh` | Info | Appends a timestamped line to `.claude/deploy.log` whenever an apply/deploy command runs |
-
-These are starting points, not a finished set — add a hook whenever the
-same kind of mistake gets made twice. See `.claude/hooks/README.md`.
+| `block-prompt-intent.sh` | Block | Destructive intent in the prompt itself — generic phrases plus this project's real danger zones (deleting the GCP project, tearing down Cloud Run, destroying the state bucket) |
+| `block-destructive-commands.sh` | Block | `terraform destroy`, force-push to `main`, deleting the GCP project/Cloud Run service/state bucket |
+| `block-mcp-destroy.sh` | Block | Same 'destroy' intent via an MCP tool call — currently a no-op in practice since `context7` has no mutation capability, kept in case a Terraform-executing MCP server is added later |
+| `block-rm-critical-dirs.sh` | Block | `rm -rf` targeting `.claude`, `terraform`, `.github`, or `src` |
+| `block-secret-commit.sh` | Block | Bulk `git add`, and known secret-like filenames. Had a real false-positive bug (matched any dotfile as if it were `git add .`) found and fixed during this project's own setup |
+| `warn-risky-action.sh` | Warn | `terraform apply` with no preceding saved plan |
+| `suggest-validation.sh` | Info | Suggests `terraform validate`/`fmt` after editing `.tf` files, similar tips for the Dockerfile/workflow/package.json |
+| `log-deploy-activity.sh` | Info | Logs `terraform apply` runs to `.claude/deploy.log` — the real deploy (`git push` → GitHub Actions) happens outside this hook's reach entirely |
 
 ## Agents (see .claude/agents/)
 
 | Agent | Use for |
 |-------|---------|
-| `security-reviewer` | Security-focused review before merging/deploying |
-| `cost-reviewer` | Flag expensive resources / cost regressions (delete if this project has no metered cloud spend) |
+| `security-reviewer` | Security review — adapted to this stack: the public Cloud Run invoker is a known, intentional exception, not a finding |
+| `cost-reviewer` | Cloud Run/Artifact Registry cost review — knows this site should realistically stay within Cloud Run's permanent free tier |
 | `quality-reviewer` | Reuse, simplification, dead code, drift between docs and reality |
-| `docs-reviewer` | Checks docs stay accurate against the actual code/paths/commands |
-| `drift-detector` | Diffs Terraform state against real cloud resources (delete if this project isn't Terraform-managed) |
-| `tf-writer` | Generates Terraform code — the only agent here that writes, not just reviews (delete if this project isn't Terraform-managed) |
+| `docs-reviewer` | Checks docs stay accurate against the actual code/paths/commands — this README was itself substantially out of date until a review caught it |
+| `drift-detector` | Runs `cd terraform && terraform plan -detailed-exitcode` and reports any drift |
+| `tf-writer` | Generates Terraform for GCP specifically (Cloud Run, Artifact Registry, WIF) — the only agent here that writes, not just reviews |
 
 ## Rules (see .claude/rules/)
 
-<Stack-specific convention that's too detailed for this file and shouldn't
-load into every conversation regardless of what's being touched — module
-structure, naming, required tags/labels, per-layer security requirements.
-Each file auto-loads only when a matching path is touched (frontmatter
-`paths:` glob). See `.claude/rules/README.md` for the format;
-`.claude/rules/terraform.md` is a filled-out example — copy it for a new
-stack layer, or delete it if this project has no Terraform.>
+`.claude/rules/terraform.md` documents this project's real Terraform
+conventions — flat single-environment structure, GCS backend, the
+intentional public-Cloud-Run exception. Loads automatically when a `.tf`
+file is touched.
 
 ## Skills (see .claude/skills/)
 
 | Skill | Does |
 |-------|------|
-| `/plan` | Preview a change before applying it (terraform plan, `--dry-run`, whatever this stack's equivalent is) |
-| `/apply` | Apply a previously reviewed plan — never auto-approves, always requires the plan to exist first |
+| `/plan` | `terraform plan -out plan.out` |
+| `/apply` | `terraform apply plan.out` — never auto-approves |
 | `/audit` | Multi-angle review: security + cost + quality in one pass |
-| `/deploy` | Build + deploy, matching however this specific project actually ships |
+| `/deploy` | Push to `main` and watch the real pipeline through to a *verified* live result — not just a green checkmark |
+| `/rollback` | Shifts Cloud Run traffic back to the previous revision via `gcloud run services update-traffic` |
 
-Each skill file in `.claude/skills/` has a `<FILL IN>` marker showing
-exactly what needs project-specific commands substituted in.
+All five are filled in for this project's real GCP/Terraform/Cloud Run
+stack — none are still template placeholders.

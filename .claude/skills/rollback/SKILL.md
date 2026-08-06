@@ -5,43 +5,38 @@ skill most likely to need a full rewrite per project rather than light
 editing, since "previous known-good state" means something different for
 every stack.
 
-<FILL IN: replace the whole Steps section with this project's actual
-rollback mechanism. Examples from prior projects this template is
-distilled from:
-- Kubernetes/GitOps: `kubectl rollout undo deployment/{target} -n {env}`
-  (or, if GitOps-managed, revert the commit that changed the image tag and
-  let ArgoCD/Flux sync it back — never `kubectl rollout undo` directly
-  against a cluster GitOps owns, same rule as `/deploy`)
-- Static site (S3/CDN-style): re-sync the previous build artifact/version
-  to the bucket, re-invalidate the CDN cache
-- Terraform-managed infra: this is rarely a clean "rollback" — usually
-  means applying a previous, previously-reviewed plan (go through
-  `/plan` → `/apply` again with the last-known-good config), not a single
-  rollback command
-- Serverless: redeploy the previous function version/alias via the
-  platform's CLI>
+Cloud Run keeps prior revisions around by default — a rollback here means
+shifting traffic back to the previous revision, not redeploying anything.
 
 ## Arguments
 
-- `target` — <FILL IN: e.g. service/component name, or `all`>
-- `env` — target environment (default: whatever this project calls its
-  primary/dev environment)
+- `target` — not used. There's only one Cloud Run service.
+- `env` — not used. One environment.
 
 ## Steps
 
-1. Identify the current revision and the previous known-good one — show
-   both to the user before doing anything (image tag, commit SHA, plan
-   file, build artifact version, whatever this project's unit of "a
-   revision" actually is).
-2. **For a production-like `env`, require explicit confirmation before
-   proceeding** — same rule as `/apply`: name the environment explicitly,
-   state what will change, wait for a real yes.
-3. Execute the rollback to the previous revision.
-4. Monitor/verify it actually took effect (rollout status, a health
-   check, whatever this project's real signal is) — a rollback command
-   exiting 0 is not the same as the previous version actually being live.
-5. Show a summary: what was rolled back, from which revision to which,
-   and current status.
+1. List recent revisions and show them to the user before doing anything:
+   ```
+   gcloud run revisions list --service=dv-portfolio-website --region=us-central1 --project=dv-portfolio-website
+   ```
+2. Identify the current (bad) revision and the previous known-good one.
+3. **Require explicit confirmation before proceeding** — this is the only
+   environment there is, so every rollback here is effectively a
+   production rollback. State exactly which revision traffic is moving to.
+4. Shift 100% of traffic to the previous revision:
+   ```
+   gcloud run services update-traffic dv-portfolio-website --region=us-central1 --project=dv-portfolio-website --to-revisions=<PREVIOUS_REVISION>=100
+   ```
+5. Verify it actually took effect — a command exiting 0 is not the same as
+   the previous version actually being live:
+   - `curl -s https://app-valdezr.link/ | grep -o "intro.yml #1"` (or
+     whatever content marker distinguishes the two versions)
+6. Show a summary: which revision was live, which it's now on, and the
+   verification result from step 5.
+7. Note that this doesn't undo the *code* — the bad commit is still on
+   `main`, so the next push (even an unrelated one, since the pipeline has
+   no path filters yet) will redeploy it again unless the code itself is
+   also reverted.
 
 ## Important
 

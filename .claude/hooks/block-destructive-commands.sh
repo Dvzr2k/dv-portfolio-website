@@ -37,31 +37,22 @@ echo "$COMMAND" | grep -qE 'cdk\s+destroy' && \
   deny "'cdk destroy' is not allowed via Claude Code."
 
 # --- Force-push / history rewrite on protected branches ---
-# <FILL IN>: replace 'main|master|prod(uction)?' with this repo's actual
-# protected branch name(s) if different.
+# This repo has one branch, 'main' — already covered by the default pattern.
 if echo "$COMMAND" | grep -qE 'git\s+push\s+.*--force' && \
    echo "$COMMAND" | grep -qE '(main|master|prod(uction)?)'; then
   deny "Force-pushing a protected branch is not allowed via Claude Code."
 fi
 
-# --- Database drops/truncates ---
-echo "$COMMAND" | grep -qiE '(DROP\s+(TABLE|DATABASE|SCHEMA)|TRUNCATE\s+TABLE)' && \
-  deny "Dropping/truncating a database object is not allowed via Claude Code."
-
-# --- Kubernetes: deleting whole namespaces or core workload objects in prod ---
-# <FILL IN>: replace 'prod' below with this project's actual prod namespace name.
-if echo "$COMMAND" | grep -qE 'kubectl\s+delete\s+(namespace|ns)\s+.*prod' ; then
-  deny "Deleting a production namespace is not allowed via Claude Code."
-fi
-if echo "$COMMAND" | grep -qE 'kubectl\s+delete\s+(deployment|deploy|service|svc|ingress|secret|configmap|cm|pvc|statefulset|sts)\b' && \
-   echo "$COMMAND" | grep -qE '(-n|--namespace)[= ]?.*prod'; then
-  deny "Deleting workload resources in a production namespace is not allowed via Claude Code."
-fi
-
-# --- Cloud resource bulk-deletion (S3 buckets, RDS instances, etc.) ---
-echo "$COMMAND" | grep -qE 'aws\s+s3\s+rb\s+.*--force' && \
-  deny "Force-removing an S3 bucket (deletes all contents) is not allowed via Claude Code."
-echo "$COMMAND" | grep -qE 'aws\s+rds\s+delete-db-instance' && \
-  deny "Deleting an RDS instance is not allowed via Claude Code."
+# --- GCP project / Cloud Run / bucket deletion ---
+# This project has no database, Kubernetes, or AWS compute — those blocks
+# from the template were removed as genuinely not applicable. What's real
+# here: the GCP project itself, the Cloud Run service, and the two GCS
+# buckets (Terraform state + nothing else).
+echo "$COMMAND" | grep -qE 'gcloud\s+projects\s+delete' && \
+  deny "Deleting the GCP project is not allowed via Claude Code."
+echo "$COMMAND" | grep -qE 'gcloud\s+run\s+services\s+delete' && \
+  deny "Deleting the Cloud Run service is not allowed via Claude Code."
+echo "$COMMAND" | grep -qE 'gsutil\s+rm\s+.*-r.*gs://dv-portfolio-website-tfstate' && \
+  deny "Deleting the Terraform state bucket is not allowed via Claude Code."
 
 exit 0

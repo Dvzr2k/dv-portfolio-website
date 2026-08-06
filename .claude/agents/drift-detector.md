@@ -20,7 +20,8 @@ changes state or real infrastructure.
 
 ## When invoked
 
-1. Run `cd <FILL IN: terraform root, e.g. terraform/environments/{env}> && terraform plan -detailed-exitcode -no-color 2>&1`
+1. Run `cd terraform && terraform plan -detailed-exitcode -no-color 2>&1`
+   (this project has one environment — no `environments/{env}/` nesting)
    - Exit code 0 = no changes (no drift)
    - Exit code 1 = error — report it, don't treat as drift
    - Exit code 2 = changes detected (drift found)

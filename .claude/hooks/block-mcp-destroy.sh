@@ -8,12 +8,11 @@
 #      closes that specific gap.
 # How: Reads the tool input JSON from stdin, checks known destroy-shaped
 #      parameters. Exits 2 (deny) on a match, 0 (allow) otherwise.
-# <FILL IN>: this checks the parameter shape used by the Terraform/Terragrunt
-# MCP server ('command' == 'destroy'). If this project uses a different MCP
-# server that can also mutate/delete infrastructure, add its parameter shape
-# here too, and add a matching entry to the PreToolUse "matcher" in
-# settings.json (matchers are tool-name regexes, e.g.
-# "mcp__.*__ExecuteTerraformCommand|mcp__.*__ExecuteTerragruntCommand").
+# This project's only MCP server is `context7` (library docs lookup) — it
+# has no mutation/execution capability, so there's no other MCP server
+# parameter shape to add here. This hook stays generic (matches a bare
+# 'destroy' command) in case a Terraform-executing MCP server is ever added
+# later.
 
 set -euo pipefail
 

@@ -12,9 +12,10 @@
 #      on a match. This is intentionally narrow — broad matching here would
 #      block normal requests like "help me clean up this file" and train
 #      the user to find ways around the hook.
-# <FILL IN>: add phrases specific to this project's real danger zones (e.g.
-# a prod database name, a specific bucket/cluster name) if generic phrases
-# aren't catching what matters here.
+# Project-specific danger zones: the GCP project itself, the Cloud Run
+# service, the Terraform state bucket, and the live domain — this is a
+# solo personal site, so any of these three things listed as a *request*
+# should be caught before Claude ever starts planning a response.
 
 set -euo pipefail
 
@@ -25,7 +26,7 @@ if [ -z "$PROMPT" ]; then
   exit 0
 fi
 
-if echo "$PROMPT" | grep -iqE 'delete (all|everything)|destroy everything|remove all resources|wipe (the )?(database|db|bucket|cluster)|nuke|drop all (tables|databases)'; then
+if echo "$PROMPT" | grep -iqE 'delete (all|everything)|destroy everything|remove all resources|wipe (the )?(database|db|bucket|cluster)|nuke|drop all (tables|databases)|delete the (gcp )?project|tear down cloud ?run|destroy (the )?(domain|bucket|tfstate)'; then
   echo '{"decision": "block", "reason": "This prompt reads as a request for broad, irreversible destruction. If this is really what you want, be specific about the exact target (a single resource/table/file), or run the destructive command directly in your own terminal instead of through Claude Code."}'
   exit 0
 fi

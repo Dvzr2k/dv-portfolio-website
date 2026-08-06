@@ -4,28 +4,32 @@ Build and ship this project's actual artifact — the specifics are entirely
 project-dependent, so this file is the one most likely to need a full
 rewrite rather than light editing.
 
-<FILL IN: this is the biggest gap between any two real projects. Replace
-the whole Steps section with what this project actually does to deploy.
-Examples from prior projects this template is distilled from:
-- Static site: `npm run build` → sync the build output to object storage →
-  invalidate the CDN cache
-- Containerized app: build image → push to registry → update the
-  deployment manifest → let GitOps (ArgoCD/Flux) or a direct rollout apply it
-- Serverless: package function → deploy via the platform's CLI>
+This project deploys via CI, not a local build-and-ship command. Pushing
+to `main` is the deploy — this skill's job is to push (if there are
+committed-but-unpushed changes) and then watch the pipeline through to a
+verified, real result.
 
 ## Arguments
 
-- `env` — target environment (default: whatever this project calls its
-  primary/dev environment)
+- `env` — not used. This project has one environment; there's no dev/staging to target.
 
 ## Steps
 
-1. Build the deployable artifact.
-2. <FILL IN: the actual ship step for this project>
-3. Verify the deploy actually worked — hit a health endpoint, check a
-   status API, whatever this project's real signal of "it's live" is. Do
-   not report success just because the deploy *command* exited 0 — a
-   command succeeding is not the same as the app actually being healthy.
+1. Confirm the working tree is clean and the intended changes are already
+   committed. Never push uncommitted or unreviewed changes.
+2. `git push origin main`.
+3. Watch the pipeline: `gh run watch <run-id> --exit-status` (get the run
+   id via `gh run list --limit 1 --json databaseId -q '.[0].databaseId'`).
+   It runs three jobs — build, artifact, deploy.
+4. **Verify the live site, not just that the pipeline exited 0** — a green
+   checkmark means the deploy *command* succeeded, not that the app is
+   actually healthy:
+   - `curl -s -o /dev/null -w "%{http_code}" https://app-valdezr.link/` — expect `200`
+   - Check actual page *content* for at least one non-home route (e.g.
+     `curl -s https://app-valdezr.link/about | grep -o "Zoluxiones"`) —
+     status-code-only checks previously missed a real routing bug where
+     every page silently served the homepage's content
+5. Report the result with the real evidence gathered in step 4, not just "the workflow succeeded."
 
 ## Important
 

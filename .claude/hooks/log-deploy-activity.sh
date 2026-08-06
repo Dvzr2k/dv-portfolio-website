@@ -5,8 +5,10 @@
 # Why: A plain "who ran what, when" record is cheap and useful after the
 #      fact — e.g. correlating an incident with whether a deploy just ran.
 # How: Matches the command against common apply/deploy patterns, appends a
-#      timestamped line if it matches. <FILL IN>: add this project's actual
-#      deploy command if it isn't one of the ones already listed below.
+#      timestamped line if it matches. This project's real apply command
+#      (`terraform apply`) is already covered by the default pattern below —
+#      actual deploys happen via `git push` triggering GitHub Actions, which
+#      runs outside this hook's reach entirely (see .github/workflows/deploy.yml).
 
 set -euo pipefail
 
