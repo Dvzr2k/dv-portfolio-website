@@ -17,3 +17,8 @@ output "deployer_service_account" {
   description = "Email of the service account GitHub Actions impersonates to deploy"
   value       = google_service_account.deployer.email
 }
+
+output "domain_mapping_records" {
+  description = "DNS records Google expects at the domain — add these in Route 53"
+  value       = google_cloud_run_domain_mapping.root.status
+}

@@ -21,3 +21,9 @@ variable "github_repo" {
   type        = string
   default     = "Dvzr2k/dv-portfolio-website"
 }
+
+variable "domain" {
+  description = "Custom domain mapped to the Cloud Run service — must already be verified with Google (gcloud domains list-user-verified)"
+  type        = string
+  default     = "app-valdezr.link"
+}

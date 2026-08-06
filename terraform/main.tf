@@ -98,6 +98,26 @@ resource "google_cloud_run_v2_service_iam_member" "public" {
   member   = "allUsers"
 }
 
+# ---- Custom domain ----------------------------------------------------
+# The domain must already be verified with this Google account
+# (gcloud domains list-user-verified) before this can be created.
+
+resource "google_cloud_run_domain_mapping" "root" {
+  location = var.region
+  name     = var.domain
+  project  = var.project_id
+
+  metadata {
+    namespace = var.project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_v2_service.site.name
+  }
+
+  depends_on = [google_cloud_run_v2_service.site]
+}
+
 # ---- Workload Identity Federation for GitHub Actions -----------------
 # Keyless deploy auth — GitHub's own OIDC token is exchanged for a
 # short-lived GCP credential, scoped to this exact repo. No service
