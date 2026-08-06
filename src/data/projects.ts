@@ -64,15 +64,22 @@ export const projects: Project[] = [
 		slug: 'dv-portfolio-website',
 		title: 'This portfolio',
 		status: 'deployed',
-		tech: ['Astro', 'TypeScript', 'GCP Cloud Run', 'Terraform'],
+		tech: ['Astro', 'TypeScript', 'Terraform', 'GCP Cloud Run', 'GitHub Actions'],
 		github: 'https://github.com/Dvzr2k/dv-portfolio-website',
 		description: {
-			en: "You're looking at it — Astro app containerized and deployed to Cloud Run, DNS on Route 53, built end to end with Claude Code.",
-			es: 'Lo estás viendo — app en Astro empaquetada en contenedor y desplegada en Cloud Run, DNS en Route 53, construida de principio a fin con Claude Code.',
+			en: 'You’re looking at it — Astro app deployed to Cloud Run through a 3-stage GitHub Actions pipeline (build → artifact → deploy), keyless auth via Workload Identity Federation, infra fully defined in Terraform. DNS on Route 53.',
+			es: 'Lo estás viendo — app en Astro desplegada en Cloud Run mediante un pipeline de GitHub Actions de 3 etapas (build → artifact → deploy), autenticación sin claves vía Workload Identity Federation, infraestructura definida completamente en Terraform. DNS en Route 53.',
 		},
 		architecture: {
-			en: 'Built page by page with Astro and TypeScript, with English and Spanish as first-class routes rather than a bolted-on translation layer. Packaged into a container and deployed to Cloud Run, with DNS managed through Route 53. Every part of it, from the color system to this project page, was designed and implemented through an agentic Claude Code workflow — plan, build, review, repeat.',
-			es: 'Construido página por página con Astro y TypeScript, con inglés y español como rutas de primera clase en lugar de una capa de traducción añadida después. Empaquetado en un contenedor y desplegado en Cloud Run, con el DNS gestionado a través de Route 53. Cada parte de este sitio, desde el sistema de color hasta esta misma página de proyecto, fue diseñada e implementada mediante un flujo de trabajo agéntico con Claude Code — planear, construir, revisar, repetir.',
+			en: 'Every piece of infrastructure — the Cloud Run service, the Artifact Registry repo, and the Workload Identity Federation trust relationship that lets GitHub Actions deploy without a stored key — is provisioned by Terraform, not clicked together by hand. The `.claude/` directory isn’t just checked-in scaffolding either: its hooks, skills, and reviewer/writer agents were actually exercised building this, including one hook bug found, fixed, and backported to the template repo this project was scaffolded from.',
+			es: 'Cada pieza de infraestructura — el servicio de Cloud Run, el repositorio de Artifact Registry y la relación de confianza de Workload Identity Federation que permite a GitHub Actions desplegar sin una clave almacenada — está provisionada por Terraform, no configurada a mano. El directorio `.claude/` tampoco es solo un esqueleto sin usar: sus hooks, skills y agentes de revisión/escritura fueron realmente utilizados construyendo esto, incluyendo un bug de un hook que fue encontrado, corregido y trasladado al repositorio plantilla del que se creó este proyecto.',
+		},
+		demo: {
+			url: {
+				en: 'https://app-valdezr.link',
+				es: 'https://app-valdezr.link',
+			},
+			label: { en: 'Visit live site', es: 'Ver sitio en vivo' },
 		},
 	},
 ];
