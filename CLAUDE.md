@@ -175,6 +175,7 @@ file is touched.
 
 | Skill | Does |
 |-------|------|
+| `/commit` | Stage explicitly, write a why-not-just-what commit message, commit, push — the actual git mechanics only, no deploy/verification |
 | `/plan` | `terraform plan -out plan.out` |
 | `/apply` | `terraform apply plan.out` — never auto-approves |
 | `/audit` | Multi-angle review: security + cost + quality in one pass |
