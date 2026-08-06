@@ -3,6 +3,10 @@ name: Deploy to Cloud Run
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'terraform/**' # infra changes go through /plan and /apply manually, not this pipeline
+      - '.claude/**' # Claude Code tooling config, not app code
   workflow_dispatch: {}
 
 jobs:

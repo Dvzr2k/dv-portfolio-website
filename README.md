@@ -1,9 +1,13 @@
 # dv-portfolio-website
 
 Personal portfolio site — built with [Astro](https://astro.build), deployed
-on Google Cloud Run, DNS on AWS Route 53. Built with an agentic Claude Code
-workflow (see `.claude/`, adapted from
-[claude-code-project-template](https://github.com/Dvzr2k/claude-code-project-template)).
+on Google Cloud Run, DNS on AWS Route 53. This repo has two purposes, not
+one: it's the portfolio itself, and it's also a working demonstration of
+an agentic Claude Code workflow — real hooks that caught and blocked
+actual mistakes during development, real skills and reviewer/writer
+agents used to build and maintain the infrastructure, not just checked-in
+as unused scaffolding. See `.claude/`, adapted from
+[claude-code-project-template](https://github.com/Dvzr2k/claude-code-project-template).
 
 **Live at [app-valdezr.link](https://app-valdezr.link)** — English at `/`,
 Spanish at `/es`.
@@ -104,12 +108,44 @@ account and its IAM bindings, and the domain mapping — is provisioned by
 Terraform, not created by hand through the GCP console. State lives
 remotely in a versioned GCS bucket.
 
-For future infrastructure changes, `.claude/agents/tf-writer.md` and
-`.claude/agents/security-reviewer.md` exist specifically to generate and
-review Terraform changes as part of an agentic Claude Code session, and
-`.claude/hooks/block-secret-commit.sh` blocks any `git add`/`git commit`
-that looks like it's staging a secret file — this hook already caught (and
-had a real bug fixed in) a false-positive during this project's own setup.
+## Agentic Claude Code workflow
+
+The `.claude/` directory isn't boilerplate left over from the template —
+every hook, skill, and agent below has actually run against this repo, not
+just been checked in unused.
+
+### Skills
+
+| Skill | Real command | Used for |
+|---|---|---|
+| `/plan` | `terraform plan -out plan.out` | Preview infra changes before they touch anything |
+| `/apply` | `terraform apply plan.out` | Apply a saved, reviewed plan — never `-auto-approve` |
+| `/deploy` | push to `main`, then verify actual page *content* on the live site, not just that CI exited 0 | Ship a change and confirm it's really live |
+| `/rollback` | `gcloud run services update-traffic --to-revisions=<prev>=100` | Shift traffic back to the last-known-good Cloud Run revision |
+| `/audit` | runs the four review agents below in parallel | One combined security/cost/quality/docs pass |
+
+### Agents
+
+| Agent | Caught, concretely |
+|---|---|
+| `docs-reviewer` | Found this README describing an app that "hasn't been built yet" — weeks after it was actually built, deployed, and live. Full rewrite followed. |
+| `tf-writer` | Generated the Cloud Run / Artifact Registry / Workload Identity Federation Terraform — GCP-specific, not the AWS defaults the template shipped with |
+| `security-reviewer` | Scoped to this stack — knows the public Cloud Run invoker is an intentional exception here, not a finding to re-raise every run |
+| `cost-reviewer` | Documents why there's no Load Balancer (~$18-25/mo minimum for zero benefit at this traffic) so that decision doesn't get silently re-flagged as a miss |
+| `drift-detector` | Runs `terraform plan -detailed-exitcode` against the real GCP project to catch anything changed by hand outside Terraform |
+| `quality-reviewer` | General reuse/simplification/dead-code review |
+
+### Hooks — real incidents, not hypotheticals
+
+- **`block-secret-commit.sh`** blocked `git add -A` outright, forcing
+  explicit file-by-file staging throughout this project. It also had a
+  genuine bug — its regex matched *any* filename starting with a dot
+  (`git add .gitignore`) as if it were a bulk `git add .`, blocking normal,
+  safe commits. Found, fixed, and tested here — then backported to
+  [claude-code-project-template](https://github.com/Dvzr2k/claude-code-project-template)
+  itself, so every future project scaffolded from it starts without the bug.
+- **`warn-risky-action.sh`** enforces plan-before-apply on every
+  `terraform apply` invocation across this project's setup — no exceptions taken.
 
 ## Tech stack
 
