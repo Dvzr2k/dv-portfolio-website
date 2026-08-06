@@ -5,41 +5,73 @@ on:
     branches: [main]
   workflow_dispatch: {}
 
-permissions:
-  contents: read
-  id-token: write # required for keyless auth via Workload Identity Federation
-
 env:
   PROJECT_ID: dv-portfolio-website
   REGION: us-central1
   SERVICE: dv-portfolio-website
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - name: Checkout code
+      - name: 'Checkout code'
         uses: actions/checkout@v4
 
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 'Install dependencies'
+        run: npm ci
+
+      - name: 'Build project'
+        run: npm run build
+
+      - name: 'Build project - Upload artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  artifact:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Build project - Download artifact'
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
       - id: auth
-        name: Authenticate to Google Cloud
+        name: 'Authenticate to Google Cloud'
         uses: google-github-actions/auth@v2
         with:
           token_format: access_token
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
           service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
 
-      - name: Set up Docker Buildx
+      - name: 'Set up Docker Buildx'
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Artifact Registry
+      - name: 'Login to Artifact Registry'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGION }}-docker.pkg.dev
           username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
 
-      - name: Build and push image
+      - name: 'Docker Build and Push'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -48,13 +80,27 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  deploy:
+    needs: artifact
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - id: auth
+        name: 'Authenticate to Google Cloud'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+
       - id: deploy
-        name: Deploy to Cloud Run
+        name: 'Deploy Cloud Run'
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ env.SERVICE }}
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:${{ github.sha }}
 
-      - name: Show live URL
+      - name: 'Cloud Run URL'
         run: echo "Deployed to ${{ steps.deploy.outputs.url }}"
