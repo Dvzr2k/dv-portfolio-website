@@ -47,10 +47,21 @@
 
 html {
 	color-scheme: light;
+	/* matches the gradient's own landing tone — if html's own canvas ever
+	   shows through a gap below body's content box (a known class of bug
+	   on long pages, more visible on desktop where viewport/content-height
+	   mismatches are more common), it's the right dark color instead of
+	   the browser's default white */
+	background: #0a1620;
 }
 
 body {
-	background: var(--gradient);
+	/* background-color as an explicit fallback underneath the gradient
+	   image — if the gradient ever fails to paint the full scrollable
+	   height for any reason, what's left showing through is still the
+	   correct dark tone, not default white */
+	background-color: #0a1620;
+	background-image: var(--gradient);
 	color: var(--text);
 	font-family: var(--font-mono);
 	line-height: 1.65;
