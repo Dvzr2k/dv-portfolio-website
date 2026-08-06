@@ -5,85 +5,121 @@ on Google Cloud Run, DNS on AWS Route 53. Built with an agentic Claude Code
 workflow (see `.claude/`, adapted from
 [claude-code-project-template](https://github.com/Dvzr2k/claude-code-project-template)).
 
-> **Status: architecture only, nothing built yet.** The app itself
-> (Phase 1) comes first; the infra below (Phase 2 — Dockerfile, Terraform,
-> pipeline) gets built once the app is done. This diagram is the target
-> shape, not the current state.
+**Live at [app-valdezr.link](https://app-valdezr.link)** — English at `/`,
+Spanish at `/es`.
 
-## Architecture (planned)
+## Architecture
 
 Solid arrows are the live request path. Dashed arrows are build/deploy-time
-relationships (CI push, agent-assisted infra generation) — not something a
-visitor's request ever travels through.
+relationships (CI push, auth) — not something a visitor's request ever
+travels through.
 
 ```mermaid
 flowchart TD
-    DEV["👨‍💻 Developer (local)\nAstro app"]
-    GH["🐙 GitHub repo\npush to main"]
-    GHA["⚙️ GitHub Actions\nbuild Astro → build Docker image → push"]
+    DEV["👨‍💻 Developer (local)\npush to main"]
+    GH["🐙 GitHub repo"]
 
-    subgraph CLAUDE ["🤖 Claude Code — Agentic Workflow"]
-        direction TB
-        TFW["tf-writer\nTerraform gen"]
-        SEC["security-reviewer"]
-        HOOKS["🛡️ Safety Hooks\nblock-destroy · block-secret-commit"]
-        SKILLS["Skills: /plan · /apply · /deploy · /audit"]
+    subgraph GHA ["⚙️ GitHub Actions — 3 jobs"]
+        direction LR
+        BUILD["build\nnpm ci · npm run build\nupload dist/ artifact"]
+        ART["artifact\ndownload dist/\ndocker buildx build+push"]
+        DEPLOY["deploy\ngoogle-github-actions\n/deploy-cloudrun"]
+        BUILD --> ART --> DEPLOY
     end
 
-    subgraph GCP ["☁️ GCP — Cloud Run (free tier)"]
+    WIF["🔑 Workload Identity Federation\nkeyless auth, scoped to this repo\nno stored GCP key"]
+
+    subgraph GCP ["☁️ GCP"]
         AR["📦 Artifact Registry\ncontainer image"]
-        CR["🚀 Cloud Run\nscale-to-zero, min-instances 0\nno Load Balancer"]
+        CR["🚀 Cloud Run\nstatic files via `serve`\nscale-to-zero, min-instances 0"]
         DM["🔐 Domain Mapping\nfree Google-managed TLS cert"]
     end
 
-    R53["🌐 AWS Route 53\nDNS for the existing domain"]
-    USER["🌍 End user — browser"]
+    R53["🌐 AWS Route 53\nDNS for app-valdezr.link"]
+    USER["🌍 Visitor — browser"]
 
     DEV -->|git push| GH
-    GH -->|trigger workflow| GHA
-    GHA -->|push image| AR
-    AR -->|pull image| CR
-    GHA -->|deploy new revision| CR
+    GH -->|triggers| BUILD
+    ART -.->|authenticates via| WIF
+    DEPLOY -.->|authenticates via| WIF
+    ART -->|push image| AR
+    DEPLOY -->|deploy new revision| CR
     CR --> DM
-    DEV -.->|invoke skills/agents| CLAUDE
-    CLAUDE -.->|generates/reviews| GHA
 
     USER -->|HTTPS request| R53
     R53 -->|DNS record| DM
     DM --> CR
-    CR -->|response| USER
+    CR -->|static files| USER
 
-    style CLAUDE fill:#1c1c2e,stroke:#d2a8ff,color:#d2a8ff
+    style GHA fill:#1a1f2e,stroke:#22d3ee,color:#22d3ee
     style GCP fill:#1a1f2e,stroke:#4285F4,color:#4285F4
 ```
 
-## Why no Load Balancer / no Cloud Storage
+## Why static, not server-rendered
 
-- **No Load Balancer** — a GCP HTTPS Load Balancer bills a flat hourly rate
-  for the forwarding rule regardless of traffic (~$18-25/mo minimum). At
-  the expected traffic for this site (~20 visitors/month), that would be
-  by far the biggest cost in the whole stack for no real benefit. Cloud
-  Run's default URL already serves HTTPS, and **domain mapping** gives a
-  custom domain + free managed cert without needing an LB at all.
-- **No Cloud Storage** — this isn't a static-file deployment; Cloud Run
-  runs the Astro app's Node server directly inside a container, so there's
-  no separate bucket serving assets.
+Astro's default **static output** — every route is pre-built into a real
+HTML file at build time (`dist/about/index.html`, `dist/es/index.html`,
+etc.), served by a small static file server (`serve`) inside the container.
+There's no Node/SSR adapter and no per-request rendering — a page load is
+just Cloud Run handing back a file that already existed at build time.
 
 ## Why Cloud Run specifically
 
-Cheaper/simpler options existed (Firebase Hosting, Cloud Storage + CDN) —
-Cloud Run was chosen deliberately over those, since the goal is a
-DevOps-flavored portfolio (containers, IaC, a real CI/CD pipeline) rather
-than the absolute cheapest static hosting.
+Cheaper/simpler static-hosting options existed (Firebase Hosting, Cloud
+Storage + CDN, Netlify). Cloud Run was chosen deliberately over those,
+since the goal is a DevOps-flavored portfolio (a real container, IaC, a
+real CI/CD pipeline) rather than the absolute simplest way to host static
+files.
+
+## Why no Load Balancer
+
+A GCP HTTPS Load Balancer bills a flat hourly rate for the forwarding rule
+regardless of traffic (~$18-25/mo minimum). At this site's expected
+traffic, that would be by far the biggest cost in the whole stack for no
+real benefit. Cloud Run's own domain mapping gives a custom domain and a
+free managed TLS cert without needing an LB at all.
+
+## Continuous deployment
+
+Every push to `main` runs three separate jobs:
+
+1. **build** — installs dependencies, runs `npm run build`, uploads the
+   static `dist/` output as a workflow artifact.
+2. **artifact** — downloads that artifact, authenticates to GCP via
+   Workload Identity Federation (no stored key), builds the container with
+   Docker Buildx (GitHub Actions-native layer caching), and pushes it to
+   Artifact Registry.
+3. **deploy** — authenticates again via WIF, deploys the pushed image to
+   Cloud Run via `google-github-actions/deploy-cloudrun`.
+
+`PROJECT_ID`/`REGION` and the WIF provider/service-account live as GitHub
+repo variables, not hardcoded in the workflow YAML — see
+`.github/workflows/deploy.yml`.
+
+## Infrastructure as code
+
+Everything in `terraform/` — the Cloud Run service, Artifact Registry
+repo, Workload Identity Federation pool/provider, the deploy service
+account and its IAM bindings, and the domain mapping — is provisioned by
+Terraform, not created by hand through the GCP console. State lives
+remotely in a versioned GCS bucket.
+
+For future infrastructure changes, `.claude/agents/tf-writer.md` and
+`.claude/agents/security-reviewer.md` exist specifically to generate and
+review Terraform changes as part of an agentic Claude Code session, and
+`.claude/hooks/block-secret-commit.sh` blocks any `git add`/`git commit`
+that looks like it's staging a secret file — this hook already caught (and
+had a real bug fixed in) a false-positive during this project's own setup.
 
 ## Tech stack
 
 | Layer | Technology |
 |---|---|
-| Framework | Astro (Node adapter — server output, not static) |
+| Framework | Astro — static output |
 | Hosting | Google Cloud Run |
 | Image registry | Google Artifact Registry |
-| DNS | AWS Route 53 (existing domain) |
-| CI/CD | GitHub Actions |
+| DNS | AWS Route 53 (`app-valdezr.link`) |
+| CI/CD | GitHub Actions — build / artifact / deploy |
+| Deploy auth | Workload Identity Federation (keyless) |
 | IaC | Terraform |
-| Dev workflow | Claude Code — hooks, reviewer agents, skills (see `.claude/`) |
+| Dev workflow | Claude Code — hooks, reviewer/writer agents, skills (see `.claude/`) |
