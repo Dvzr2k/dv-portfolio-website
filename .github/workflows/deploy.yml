@@ -6,9 +6,9 @@ on:
   workflow_dispatch: {}
 
 env:
-  PROJECT_ID: dv-portfolio-website
-  REGION: us-central1
-  SERVICE: dv-portfolio-website
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  SERVICE: ${{ github.event.repository.name }}
 
 jobs:
   build:
