@@ -67,7 +67,7 @@ const t = useTranslations(lang);
 					</a>
 					{
 						project.demo && (
-							<a href={project.demo.url} target="_blank" rel="noopener noreferrer" class="outcome-link">
+							<a href={project.demo.url[lang]} target="_blank" rel="noopener noreferrer" class="outcome-link">
 								{project.demo.label[lang]} ↗
 							</a>
 						)
